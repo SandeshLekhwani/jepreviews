@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JoVE Visualize PoC: Workflow Builder</title>
+    <title>JoVE Extension v2.0: Contextual Activation</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Custom styles */
+        /* --- CORE VARIABLES & BASICS --- */
         :root {
             --jove-blue: #0056b3; 
             --jove-light: #e0f2ff;
@@ -15,14 +15,12 @@
         body { 
             font-family: 'Inter', system-ui, -apple-system, sans-serif; 
             background-color: #ffffff;
-            /* Padding reduced since panel is hidden by default, but kept for scrolling when active */
             padding-bottom: 220px; 
         }
         
-        /* Serif font for the main article text to look like a journal */
+        /* Serif font for the main article text (Publisher Style) */
         #article-content {
             font-family: 'Merriweather', 'Georgia', serif; 
-            /* cursor: pointer; removed to prevent click icon on hover */
             line-height: 1.9;
             font-size: 1.125rem;
             color: #1f2937;
@@ -30,182 +28,234 @@
             user-select: text;
         }
 
-        /* --- SLIDE-OUT EXTENSION SIDEBAR --- */
+        /* --- UI COMPONENT: SNIFFER NOTIFICATION --- */
+        #sniffer-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 10px 16px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 6000;
+            transform: translateY(-100px);
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 1px solid #e5e7eb;
+        }
+        #sniffer-badge.active {
+            transform: translateY(0);
+        }
+        .pulse-dot {
+            width: 8px; height: 8px; background: #22c55e; border-radius: 50%;
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+            animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
+        /* --- UI COMPONENT: SLIDE-OUT SIDEBAR --- */
         #extension-sidebar {
             position: fixed;
             top: 0;
-            right: -400px; /* Hidden by default */
-            width: 380px;
+            right: -420px; 
+            width: 400px;
             height: 100vh;
-            background-color: #ffffff;
-            box-shadow: -5px 0 25px rgba(0,0,0,0.15);
+            
+            /* Glassmorphism Update */
+            background: rgba(255, 255, 255, 0.9); /* High opacity for readability */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: -10px 0 40px 0 rgba(31, 38, 135, 0.15);
+            
             z-index: 5000;
-            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
-            border-left: 4px solid var(--jove-blue);
         }
         #extension-sidebar.open {
             right: 0;
         }
+        
+        /* Floating Toggle Button */
         #sidebar-toggle {
             position: fixed;
             top: 120px;
-            right: 0;
-            background: var(--jove-blue);
-            color: white;
-            padding: 12px 16px;
-            border-radius: 8px 0 0 8px;
+            right: -60px; /* Hidden off-screen initially */
+            
+            /* Light Glassmorphism */
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            
+            color: #1a1a1a; 
+            padding: 10px 16px;
+            border-radius: 12px 0 0 12px;
             cursor: pointer;
             z-index: 5001;
-            box-shadow: -2px 2px 10px rgba(0,0,0,0.2);
-            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: -2px 4px 12px rgba(0, 0, 0, 0.1); 
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s, transform 0.2s;
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-weight: 600;
+            gap: 12px; 
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        #sidebar-toggle:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateX(-2px);
+        }
+        #sidebar-toggle.visible {
+            right: 0;
         }
         #extension-sidebar.open + #sidebar-toggle {
-            right: 380px; /* Move button with sidebar */
+            right: 400px; 
+            background: rgba(255, 255, 255, 0.6); /* Match sidebar glass */
+            color: var(--jove-blue);
+            backdrop-filter: blur(20px);
+        }
+        
+        /* Notification Shine Animation */
+        @keyframes glow-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 86, 179, 0.4); border-color: rgba(0, 86, 179, 0.5); }
+            50% { box-shadow: 0 0 0 8px rgba(0, 86, 179, 0); border-color: rgba(0, 86, 179, 1); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 86, 179, 0); border-color: rgba(0, 86, 179, 0.5); }
+        }
+        .shine-active {
+            animation: glow-pulse 2s infinite;
+            color: var(--jove-blue) !important;
         }
 
-        /* --- GLASSMORPHIC WORKFLOW BUILDER --- */
+        /* --- UI COMPONENT: GLASSMORPHIC WORKFLOW BUILDER --- */
         #workflow-panel {
             position: fixed;
             bottom: 20px; 
             left: 50%;
             transform: translateX(-50%);
-            width: 95%; 
-            max-width: 1200px;
-            height: 200px;
+            width: 90%; 
+            max-width: 1100px;
+            height: 220px;
             
-            /* Glassmorphism Styles */
-            background: rgba(224, 242, 254, 0.65); /* Blueish tint */
+            /* Glassmorphism - JoVE Blue Tint */
+            background: rgba(0, 86, 179, 0.15); /* #0056b3 with transparency */
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            border: 1px solid rgba(0, 86, 179, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 86, 179, 0.1);
             
-            border-radius: 24px;
+            border-radius: 20px;
             z-index: 4000;
-            /* HIDDEN BY DEFAULT */
-            display: none; 
+            display: none; /* Hidden by default */
             flex-direction: column;
             overflow: hidden;
-            transition: transform 0.3s ease;
-            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        
         @keyframes slideUp {
-            from { transform: translate(-50%, 100px); opacity: 0; }
+            from { transform: translate(-50%, 120px); opacity: 0; }
             to { transform: translate(-50%, 0); opacity: 1; }
         }
-        
-        #workflow-panel:hover {
-            transform: translateX(-50%) translateY(-5px);
-        }
-
         #workflow-header {
-            background: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.6);
             border-bottom: 1px solid rgba(255, 255, 255, 0.3);
         }
-
         #workflow-canvas {
             flex: 1;
             display: flex;
             align-items: center;
-            padding: 20px;
-            gap: 20px;
+            padding: 20px 40px;
+            gap: 40px; /* Space for arrows */
             overflow-x: auto;
-            /* Subtle grid pattern for technical feel */
-            background-image: radial-gradient(rgba(0, 86, 179, 0.1) 1px, transparent 1px);
+            scroll-behavior: smooth;
+            background-image: radial-gradient(rgba(0, 86, 179, 0.2) 1px, transparent 1px);
             background-size: 20px 20px;
         }
-        
-        /* Custom Scrollbar for the glass panel */
-        #workflow-canvas::-webkit-scrollbar {
-            height: 8px;
-        }
-        #workflow-canvas::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.3);
-            border-radius: 10px;
-        }
-        #workflow-canvas::-webkit-scrollbar-thumb {
-            background: rgba(0, 86, 179, 0.3);
-            border-radius: 10px;
-        }
+        /* Custom Scrollbar */
+        #workflow-canvas::-webkit-scrollbar { height: 6px; }
+        #workflow-canvas::-webkit-scrollbar-thumb { background: #0056b344; border-radius: 10px; }
 
         /* Workflow Nodes */
         .workflow-node {
-            min-width: 180px;
-            max-width: 180px;
+            min-width: 200px;
+            max-width: 200px;
             background: rgba(255, 255, 255, 0.9);
             border: 1px solid rgba(0, 86, 179, 0.3);
-            border-radius: 16px;
-            padding: 12px;
+            border-radius: 12px;
+            padding: 16px;
             position: relative;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             flex-shrink: 0;
-            cursor: pointer; /* Changed to pointer */
+            cursor: pointer;
             transition: all 0.2s ease;
         }
         .workflow-node:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            border-color: rgba(0, 86, 179, 0.6);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.1);
+            border-color: var(--jove-blue);
         }
-        .workflow-node::after {
-            /* Arrow Connector */
-            content: "→";
+        /* Arrow Connector */
+        .workflow-node:not(:last-child)::after {
+            content: "";
             position: absolute;
-            right: -24px;
+            right: -35px;
             top: 50%;
-            transform: translateY(-50%);
-            font-size: 20px;
-            color: rgba(0, 86, 179, 0.5);
-            font-weight: bold;
+            width: 30px;
+            height: 2px;
+            background: rgba(0, 86, 179, 0.4);
         }
-        .workflow-node:last-child::after {
-            display: none;
+        .workflow-node:not(:last-child)::before {
+            content: "▶";
+            position: absolute;
+            right: -42px;
+            top: 41%;
+            color: rgba(0, 86, 179, 0.4);
+            font-size: 14px;
         }
         @keyframes popIn {
             from { transform: scale(0.8); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
 
-        /* --- POPUP --- */
+        /* --- UI COMPONENT: POPUP --- */
         #protocol-popup {
             position: fixed; 
             background: #fff;
-            padding: 1rem;
+            padding: 0; /* Reset for card layout */
             border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
             z-index: 6000; 
-            width: 320px; 
+            width: 340px; 
             border: 1px solid #e2e8f0;
             display: none;
+            overflow: hidden;
         }
 
-        /* --- DETAIL MODAL --- */
+        /* --- UI COMPONENT: DETAIL MODAL --- */
         #detail-modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.6);
             backdrop-filter: blur(4px);
             z-index: 8000;
-            display: none; /* Flex when active */
+            display: none; 
             align-items: center;
             justify-content: center;
         }
         #detail-modal-content {
             background: white;
             width: 90%;
-            max-width: 600px;
-            border-radius: 20px;
+            max-width: 650px;
+            border-radius: 16px;
             overflow: hidden;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            animation: modalScale 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: modalScale 0.3s ease;
         }
         @keyframes modalScale {
             from { transform: scale(0.95); opacity: 0; }
@@ -215,33 +265,42 @@
         /* Toast */
         #toast-container {
             position: fixed;
-            bottom: 240px; 
+            bottom: 250px; 
             right: 2rem;
             z-index: 7000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
     </style>
 </head>
 <body>
 
-    <!-- SIDEBAR TOGGLE BUTTON -->
+    <!-- 1. SNIFFER BADGE (Simulates Heuristic Detection) -->
+    <div id="sniffer-badge">
+        <div id="sniffer-status-dot" class="w-2 h-2 bg-gray-400 rounded-full"></div>
+        <span id="sniffer-text" class="text-xs font-semibold text-gray-600">Scanning content...</span>
+    </div>
+
+    <!-- 2. SIDEBAR TOGGLE (Hidden until detected) -->
     <button id="sidebar-toggle" onclick="toggleSidebar()">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
-        <span>Jovie</span>
+        <!-- New JoVE Logo Icon -->
+        <img src="https://cdn.brandfetch.io/idDVxDhAav/w/300/h/300/theme/dark/logo.png?c=1bxid64Mup7aczewSAYMX&t=1764684175222" alt="JoVE Logo" class="w-6 h-6 rounded-full object-contain">
+        <span>JoVE</span>
     </button>
 
-    <!-- SLIDE-OUT SIDEBAR -->
+    <!-- 3. SLIDE-OUT SIDEBAR -->
     <aside id="extension-sidebar" class="p-6 gap-6">
-        <div class="flex items-center justify-between border-b pb-4 shrink-0">
-            <h2 class="text-3xl font-extrabold text-blue-900 tracking-tight">Jovie</h2>
-            <button onclick="toggleSidebar()" class="text-gray-400 hover:text-gray-600">
+        <div class="flex items-center justify-between border-b border-gray-200/50 pb-4 shrink-0">
+            <h2 class="text-3xl font-extrabold text-blue-900 tracking-tight">JoVE</h2>
+            <button onclick="toggleSidebar()" class="text-gray-500 hover:text-gray-800">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
 
-        <!-- 1. Safety & Compliance Section (Top) -->
         <div class="shrink-0">
             <h3 class="font-bold text-[#0056b3] mb-2 uppercase text-xs tracking-wider">Safety & Compliance</h3>
-            <div class="text-xs text-gray-600 p-4 bg-red-50 border border-red-200 rounded-lg shadow-sm">
+            <div class="text-xs text-gray-600 p-4 bg-red-50/80 border border-red-200 rounded-lg shadow-sm backdrop-blur-sm">
                 <div class="flex items-start gap-2">
                     <svg class="w-5 h-5 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     <div>
@@ -252,109 +311,68 @@
             </div>
         </div>
 
-        <!-- 2. Required Equipments (Middle) -->
+        <!-- NEW: RELEVANT VIDEOS (Populated dynamically) -->
         <div class="shrink-0">
-            <h3 class="font-bold text-[#0056b3] mb-2 uppercase text-xs tracking-wider">Required Equipments</h3>
-            <div id="reagent-content" class="space-y-3">
-                <div class="p-6 bg-gray-50 rounded-lg border border-gray-200 text-center border-dashed">
-                    <p class="text-sm text-gray-500">Highlight specific reagents or equipment in the text to see details, pricing, and demos.</p>
+            <h3 class="font-bold text-[#0056b3] mb-2 uppercase text-xs tracking-wider">Relevant Videos</h3>
+            <div id="video-content" class="space-y-3">
+                <div class="p-6 bg-white/60 rounded-lg border border-gray-200 text-center border-dashed backdrop-blur-sm">
+                    <p class="text-sm text-gray-500">Highlight protocol text to see relevant video steps here.</p>
                 </div>
             </div>
         </div>
 
-        <!-- 3. Clip History (Bottom, fills remaining space) -->
+        <div class="shrink-0">
+            <h3 class="font-bold text-[#0056b3] mb-2 uppercase text-xs tracking-wider">Required Equipment</h3>
+            <div id="reagent-content" class="space-y-3">
+                <div class="p-6 bg-white/60 rounded-lg border border-gray-200 text-center border-dashed backdrop-blur-sm">
+                    <p class="text-sm text-gray-500">Highlight specific reagents or equipment in the text to see details.</p>
+                </div>
+            </div>
+        </div>
+
         <div class="flex-1 overflow-y-auto min-h-0">
-             <h3 class="font-bold text-[#0056b3] mb-2 uppercase text-xs tracking-wider sticky top-0 bg-white py-2">Clip History</h3>
-             <div id="clip-history" class="text-sm text-gray-400 italic">No clips yet.</div>
+             <h3 class="font-bold text-[#0056b3] mb-2 uppercase text-xs tracking-wider sticky top-0 bg-white/0 py-2">Clip History</h3>
+             <div id="clip-history" class="text-sm text-gray-600 italic">No clips yet.</div>
         </div>
     </aside>
 
 
-    <!-- MAIN CONTENT AREA -->
+    <!-- 4. MAIN ARTICLE CONTENT -->
     <div class="max-w-5xl mx-auto p-6 pt-8 font-sans">
-        <!-- Search Bar / Nav Simulation -->
-        <div class="flex items-center gap-4 mb-8 border-b border-gray-200 pb-4">
-            <span class="text-2xl font-bold text-blue-800 tracking-tighter flex items-center gap-1">
-                JoVE<span class="text-gray-500 font-normal text-xl">Scholar</span>
-            </span>
-            <div class="flex-1 relative">
-                <input type="text" class="w-full bg-gray-100 rounded-full h-10 pl-10 pr-4 text-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 transition" placeholder="Search articles, protocols, videos, and more...">
-                <svg class="w-4 h-4 text-gray-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            </div>
-            <div class="flex gap-6 text-sm text-gray-600 font-medium">
-                <span class="hover:text-blue-600 cursor-pointer">My Library</span>
-                <span class="hover:text-blue-600 cursor-pointer">Sign In</span>
-            </div>
+        <!-- Mock Nav -->
+        <div class="flex items-center gap-4 mb-8 border-b border-gray-200 pb-4 opacity-50 pointer-events-none">
+            <span class="text-2xl font-bold text-blue-800 tracking-tighter">JoVE<span class="text-gray-500 font-normal text-xl">Scholar</span></span>
+            <div class="flex-1 bg-gray-100 rounded-full h-10"></div>
         </div>
 
         <main class="bg-white" id="article-main">
-            <!-- Article Header -->
             <div class="mb-6">
                 <div class="flex items-center gap-2 mb-3">
                     <span class="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wide rounded">Journal of Visualized Experiments</span>
-                    <span class="text-xs text-gray-400">•</span>
-                    <span class="text-xs text-gray-500 font-semibold uppercase tracking-wide">Genetics</span>
-                    <span class="text-xs text-gray-400">•</span>
                     <span class="text-xs text-gray-500">October 2024</span>
                 </div>
-                
                 <h2 class="text-3xl font-bold text-gray-900 mt-2 leading-tight tracking-tight">
-                    Optimization of Novel CRISPR-Cas9 Screening Protocols for High-Throughput Genomic Analysis
+                    Optimization of Novel CRISPR-Cas9 Screening Protocols
                 </h2>
-                
-                <div class="text-sm text-gray-700 mt-4 flex flex-wrap gap-2 items-center">
-                    <span class="font-semibold text-gray-900 underline decoration-dotted decoration-gray-300 cursor-pointer">Dr. Elena Rodriguez<sup>1</sup></span>, 
-                    <span class="cursor-pointer hover:text-blue-600">Markus Weber<sup>1</sup></span>, 
-                    <span class="cursor-pointer hover:text-blue-600">Sarah J. Chen<sup>2</sup></span>,
-                    <span class="cursor-pointer hover:text-blue-600">David A. Miller<sup>3</sup></span>
-                </div>
-                <div class="text-xs text-gray-500 mt-2 italic">
-                    <sup>1</sup>Department of Molecular Biology, University of Zurich; <sup>2</sup>Genomics Institute, MIT; <sup>3</sup>Broad Institute
+                <div class="text-sm text-gray-500 mt-2 italic">
+                    Department of Molecular Biology, University of Zurich
                 </div>
             </div>
 
-            <!-- Action Bar -->
-            <div class="flex items-center justify-between border-y border-gray-100 py-3 mb-8">
-                <div class="flex gap-6 text-sm text-gray-600 font-medium">
-                    <button class="flex items-center gap-1.5 hover:text-blue-700 transition">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        PDF
-                    </button>
-                    <button class="flex items-center gap-1.5 hover:text-blue-700 transition">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 6a2 2 0 11-4 0h4zM8 6a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V8a2 2 0 00-2-2H8z"></path></svg>
-                        Cite
-                    </button>
-                    <button class="flex items-center gap-1.5 hover:text-blue-700 transition">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-                        Save
-                    </button>
-                    <button class="flex items-center gap-1.5 hover:text-blue-700 transition">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
-                        Share
-                    </button>
-                </div>
-                <div class="flex gap-2">
-                    <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">PMID: 349281</span>
-                    <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">DOI: 10.3791/6251</span>
-                </div>
+            <div class="flex items-center justify-between border-y border-gray-100 py-3 mb-8 text-sm text-gray-500">
+                <div class="flex gap-4"><span>PDF</span> <span>Cite</span> <span>Share</span></div>
+                <div>DOI: 10.3791/6251</div>
             </div>
 
-            <!-- Abstract -->
+            <!-- ABSTRACT -->
             <div class="mb-10 bg-gray-50/50 p-6 rounded-xl border border-gray-100">
                 <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3">Abstract</h3>
                 <p class="text-sm text-gray-800 leading-7 text-justify">
-                    High-throughput genetic screening using CRISPR-Cas9 has revolutionized genomic research. However, variability in transfection efficiency and off-target effects remains a challenge for reproducible data generation. Here, we present an optimized workflow for conducting large-scale CRISPR screens in mammalian cells. This protocol details critical steps including <span class="font-semibold text-gray-900">guide RNA design</span>, high-efficiency lipofection, and <span class="font-semibold text-gray-900">fluorescence-activated cell sorting (FACS)</span> for enrichment. Our results demonstrate a 40% increase in editing efficiency and significantly reduced toxicity compared to standard electroporation methods.
+                    High-throughput genetic screening using CRISPR-Cas9 has revolutionized genomic research. However, variability in transfection efficiency and off-target effects remains a challenge. This protocol details critical steps including guide RNA design, high-efficiency lipofection, and fluorescence-activated cell sorting (FACS).
                 </p>
-                <div class="mt-4 flex gap-2">
-                    <span class="text-xs font-semibold text-gray-500 uppercase">Keywords:</span>
-                    <span class="text-xs text-blue-600 hover:underline cursor-pointer">CRISPR-Cas9</span>,
-                    <span class="text-xs text-blue-600 hover:underline cursor-pointer">Gene Editing</span>,
-                    <span class="text-xs text-blue-600 hover:underline cursor-pointer">High-Throughput Screening</span>,
-                    <span class="text-xs text-blue-600 hover:underline cursor-pointer">FACS</span>
-                </div>
             </div>
 
-            <!-- Content Body (Existing ID for functionality) -->
+            <!-- METHODS (Target for Highlighting) -->
             <div class="border-t border-gray-200 pt-8">
                  <h3 class="text-lg font-bold text-gray-900 mb-4">Methods</h3>
                 <div id="article-content" class="text-gray-800 space-y-6">
@@ -368,23 +386,14 @@
                         <strong class="font-bold text-gray-900">Step 2: Genomic Extraction & Validation.</strong> Post-transfection, genomic DNA (gDNA) was extracted. The efficiency of gene editing was then quantified using quantitative polymerase chain reaction (qPCR). The assay was run for 40 cycles on a Bio-Rad CFX96 Real-Time System. The data showed minimal off-target effects, a direct result of our optimized guide RNA design protocol.
                     </p>
                     <p>
-                        <strong class="font-bold text-gray-900">Step 3: Cell Sorting.</strong> For subsequent single-cell analysis, a subpopulation was isolated. The cells were then immediately prepared for Fluorescence-Activated Cell Sorting (FACS) using a BD FACSAria Fusion sorter. This required careful calibration of the instrument's fluidics pressure and nozzle alignment—a process often poorly described in text-only SOPs. The isolated cells were frozen in liquid nitrogen for long-term storage.
+                        <strong class="font-bold text-gray-900">Step 3: Cell Sorting.</strong> For subsequent single-cell analysis, a subpopulation was isolated. The cells were then immediately prepared for Fluorescence-Activated Cell Sorting (FACS) using a BD FACSAria Fusion sorter. This required careful calibration of the instrument's fluidics pressure and nozzle alignment. The isolated cells were frozen in liquid nitrogen for long-term storage.
                     </p>
                 </div>
-            </div>
-            
-            <!-- References Placeholder -->
-            <div class="border-t border-gray-200 mt-12 pt-8 pb-12">
-                 <h3 class="text-lg font-bold text-gray-900 mb-4">References</h3>
-                 <div class="text-sm text-gray-500 space-y-2">
-                     <p>1. Jinek, M. et al. A programmable dual-RNA-guided DNA endonuclease in adaptive bacterial immunity. <em>Science</em> 337, 816–821 (2012).</p>
-                     <p>2. Shalem, O. et al. Genome-scale CRISPR-Cas9 knockout screening in human cells. <em>Science</em> 343, 84–87 (2014).</p>
-                 </div>
             </div>
         </main>
     </div>
 
-    <!-- GLASSMORPHIC WORKFLOW BUILDER (Initially Hidden) -->
+    <!-- 5. WORKFLOW BUILDER (Hidden) -->
     <div id="workflow-panel">
         <div id="workflow-header" class="h-10 flex items-center justify-between px-6 shrink-0">
             <div class="flex items-center gap-2">
@@ -398,308 +407,342 @@
                 </button>
             </div>
         </div>
-
         <div id="workflow-canvas">
-           <!-- Nodes will be added here -->
+           <!-- Nodes added here -->
         </div>
     </div>
     
-    <!-- POPUP ELEMENT -->
+    <!-- 6. POPUP -->
     <div id="protocol-popup"></div>
 
-    <!-- DETAIL MODAL -->
+    <!-- 7. DETAIL MODAL -->
     <div id="detail-modal" onclick="closeDetailModal(event)">
         <div id="detail-modal-content" onclick="event.stopPropagation()">
-            <!-- Content Injected via JS -->
+            <!-- JS Injected -->
         </div>
     </div>
 
-    <!-- Toast Container -->
+    <!-- 8. TOASTS -->
     <div id="toast-container"></div>
 
     <script>
-        // --- DATA & STATE ---
-        const protocolMatches = {
-            "quantitative polymerase chain reaction (qPCR)": {
-                id: "qpcr",
-                title: "qPCR Setup",
-                desc: "Master mix preparation, thermal cycling parameters, and fluorescence threshold settings.",
-                long_desc: "This protocol visualizes the critical steps of setting up a quantitative PCR run. Key focus areas include: <br>• Correct preparation of the Master Mix on ice.<br>• Loading of the 96-well plate to avoid air bubbles.<br>• Setting baseline and threshold values in the software.",
-                video_url: "#",
-                duration: "4:15",
-                match_type: "Method"
+        // --- MOCK DATABASE (Searchable by Keywords) ---
+        const joveDatabase = [
+            {
+                id: "vid_transfect",
+                keywords: ["transfection", "lipofectamine", "plasmid", "toxicity"],
+                title: "Lipofectamine Transfection",
+                desc: "High-efficiency plasmid delivery method.",
+                duration: "3:20",
+                type: "Method"
             },
-            "pipetting volume and speed": {
-                id: "pipet",
+            {
+                id: "vid_microscopy",
+                keywords: ["microscopy", "zeiss", "confocal", "fluorescence", "integration"],
+                title: "Confocal Imaging Setup",
+                desc: "Z-stack acquisition on Zeiss LSM 980.",
+                duration: "5:45",
+                type: "Technique"
+            },
+            {
+                id: "vid_extraction",
+                keywords: ["extraction", "gdna", "genomic", "dna"],
+                title: "Genomic DNA Extraction",
+                desc: "Column-based purification protocol.",
+                duration: "4:10",
+                type: "Method"
+            },
+            {
+                id: "vid_qpcr",
+                keywords: ["qpcr", "polymerase", "chain reaction", "bio-rad", "cfx96", "cycles"],
+                title: "qPCR Setup & Cycling",
+                desc: "Master mix and thermal profile setup.",
+                duration: "6:15",
+                type: "Method"
+            },
+            {
+                id: "vid_grna",
+                keywords: ["guide rna", "grna", "design", "off-target"],
+                title: "gRNA Design Principles",
+                desc: "Optimizing specificity for CRISPR.",
+                duration: "2:50",
+                type: "Concept"
+            },
+            {
+                id: "vid_facs",
+                keywords: ["facs", "sorting", "sorter", "bd", "fusion", "fluidics", "nozzle"],
+                title: "FACS Instrument Calibration",
+                desc: "Fluidics and drop delay setup.",
+                duration: "8:00",
+                type: "Method"
+            },
+            {
+                id: "vid_pipet",
+                keywords: ["pipetting", "volume", "speed", "precise"],
                 title: "Precision Pipetting",
-                desc: "Techniques for micropipette adjustment and plunger control.",
-                long_desc: "Learn the proper technique for high-precision liquid handling. This module covers:<br>• Pre-wetting the tip.<br>• Aspirating at 90 degrees and dispensing at 45 degrees.<br>• Controlled plunger release to prevent aerosols.",
-                video_url: "#",
-                duration: "2:30",
-                match_type: "Technique"
-            },
-            "guide RNA design protocol": {
-                id: "grna",
-                title: "gRNA Design",
-                desc: "Strategies for minimizing off-target effects in CRISPR experiments.",
-                long_desc: "An animated guide to designing high-efficiency guide RNAs. Topics include:<br>• PAM sequence selection.<br>• GC content optimization.<br>• Using bioinformatic tools to predict off-target binding sites.",
-                video_url: "#",
-                duration: "3:45",
-                match_type: "Concept"
-            },
-            "Fluorescence-Activated Cell Sorting (FACS)": {
-                id: "facs",
-                title: "FACS Calibration",
-                desc: "Instrument fluidics setup, nozzle alignment, and droplet delay calculation.",
-                long_desc: "A detailed visual walkthrough of the BD FACSAria Fusion setup.<br>• Sheath fluid pressure regulation.<br>• Accudrop delay determination.<br>• Gating strategy for single-cell sorting.",
-                video_url: "#",
-                duration: "6:20",
-                match_type: "Method"
-            },
-        };
+                desc: "Micro-volume handling techniques.",
+                duration: "1:30",
+                type: "Technique"
+            }
+        ];
 
         const reagentMatches = {
-            "Lipofectamine 3000 reagent": { 
-                name: "Lipofectamine 3000", 
-                vendor: "Thermo Fisher", 
-                price: "$420.00", 
-                img: "https://placehold.co/100x50/1e88e5/ffffff?text=REAGENT",
-                desc: "High-efficiency transfection reagent for difficult-to-transfect cells. Optimized for plasmid DNA and siRNA delivery.",
-                video_thumb: "https://placehold.co/100x60/333/fff?text=Demo",
-                purchase_url: "#"
-            },
-            "Zeiss LSM 980 confocal microscope": { 
-                name: "LSM 980 Microscope", 
-                vendor: "Zeiss", 
-                price: "Request Quote", 
-                img: "https://placehold.co/100x50/ffb300/000000?text=MICROSCOPE",
-                desc: "Airyscan 2 multiplexing for 4D super-resolution imaging. Ideal for live cell imaging and sensitive fluorescence detection.",
-                video_thumb: "https://placehold.co/100x60/333/fff?text=Demo",
-                purchase_url: "#"
-            },
-            "Bio-Rad CFX96 Real-Time System": { 
-                name: "CFX96 qPCR System", 
-                vendor: "Bio-Rad", 
-                price: "$18,000", 
-                img: "https://placehold.co/100x50/43a047/ffffff?text=QPCR+SYS",
-                desc: "Six-channel real-time PCR detection system with precise thermal cycling and C1000 Touch thermal cycler chassis.",
-                video_thumb: "https://placehold.co/100x60/333/fff?text=Demo",
-                purchase_url: "#"
-            },
-            "BD FACSAria Fusion sorter": { 
-                name: "FACSAria Fusion Sorter", 
-                vendor: "BD Biosciences", 
-                price: "Request Quote", 
-                img: "https://placehold.co/100x50/d81b60/ffffff?text=SORTER",
-                desc: "High-speed cell sorter with biosafety cabinet integration. Delivers exceptional multicolor performance.",
-                video_thumb: "https://placehold.co/100x60/333/fff?text=Demo",
-                purchase_url: "#"
-            },
+            "Lipofectamine 3000": { name: "Lipofectamine 3000", vendor: "Thermo Fisher", price: "$420.00", img: "https://placehold.co/100x50/1e88e5/ffffff?text=REAGENT", desc: "Advanced transfection reagent.", video_thumb: "https://placehold.co/100x60/333/fff?text=Demo" },
+            "Zeiss LSM 980": { name: "LSM 980 Microscope", vendor: "Zeiss", price: "Request Quote", img: "https://placehold.co/100x50/ffb300/000000?text=MICROSCOPE", desc: "Super-resolution confocal system.", video_thumb: "https://placehold.co/100x60/333/fff?text=Demo" },
+            "Bio-Rad CFX96": { name: "CFX96 qPCR System", vendor: "Bio-Rad", price: "$18,000", img: "https://placehold.co/100x50/43a047/ffffff?text=QPCR", desc: "Real-time PCR detection system.", video_thumb: "https://placehold.co/100x60/333/fff?text=Demo" },
+            "BD FACSAria": { name: "FACSAria Fusion", vendor: "BD Biosciences", price: "Request Quote", img: "https://placehold.co/100x50/d81b60/ffffff?text=SORTER", desc: "High-speed cell sorter.", video_thumb: "https://placehold.co/100x60/333/fff?text=Demo" }
         };
 
+        // --- GLOBAL STATE ---
+        let currentMatches = []; // Store matches found in current selection
+
+        // --- 1. SNIFFER SIMULATION (Page Load) ---
+        window.addEventListener('load', () => {
+            const badge = document.getElementById('sniffer-badge');
+            const dot = document.getElementById('sniffer-status-dot');
+            const text = document.getElementById('sniffer-text');
+            const toggle = document.getElementById('sidebar-toggle');
+
+            // 1. Initial State: Hidden
+            badge.classList.add('active');
+
+            // 2. Simulate Detection Logic (Delay)
+            setTimeout(() => {
+                // Success State
+                dot.classList.add('pulse-dot');
+                text.textContent = "Scientific Protocol Detected (DOI Found)";
+                text.classList.add('text-green-700');
+                badge.style.borderColor = '#86efac';
+                
+                // Show Toggle
+                toggle.classList.add('visible');
+                
+                // Auto-hide badge after a few seconds
+                setTimeout(() => {
+                    badge.classList.remove('active');
+                }, 4000);
+            }, 1500);
+        });
+
+        // --- 2. LOGIC LAYER: TEXT ANALYSIS (The Middleware) ---
+        function analyzeText(text) {
+            // A. Clean text
+            const cleanText = text.trim();
+            if (cleanText.length < 5) return [];
+
+            // B. Split into "Steps" (Split by periods looking for sentences)
+            // In a real app, use NLP. Here, simple regex.
+            const sentences = cleanText.split(/\. (?=[A-Z])/).filter(s => s.length > 10);
+            
+            const results = [];
+            let lastVideoId = null; // Track previous video to deduplicate consecutive steps
+
+            // C. Match each sentence against DB
+            sentences.forEach((sentence, index) => {
+                // Find best matching video for this sentence
+                let bestMatch = null;
+                let maxScore = 0;
+
+                joveDatabase.forEach(video => {
+                    let score = 0;
+                    video.keywords.forEach(kw => {
+                        if (sentence.toLowerCase().includes(kw)) score++;
+                    });
+                    
+                    if (score > maxScore) {
+                        maxScore = score;
+                        bestMatch = video;
+                    }
+                });
+
+                // Deduplication Logic:
+                // Only add if we found a match AND it is different from the previous step's video
+                if (bestMatch && bestMatch.id !== lastVideoId) {
+                    results.push({
+                        stepText: sentence,
+                        video: bestMatch,
+                        stepNumber: results.length + 1 // Use results.length to sequence correctly
+                    });
+                    lastVideoId = bestMatch.id;
+                }
+            });
+
+            return results;
+        }
+
+        // --- 3. UI: POPUP LOGIC ---
         const popup = document.getElementById('protocol-popup');
-        const reagentContent = document.getElementById('reagent-content');
+        
+        function updatePopup(selectedText) {
+            const matches = analyzeText(selectedText);
+            currentMatches = matches; // Store for global use
+
+            if (matches.length === 0) {
+                popup.style.display = 'none';
+                return;
+            }
+
+            // Calculate Position
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) return;
+            const range = selection.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+
+            // RENDER CONTENT
+            // 2 CTAs REQUIRED for BOTH Single and Batch view
+            const buildBtn = `
+                <button onclick="addBatchToWorkflow()" class="flex-1 bg-blue-600 text-white text-xs font-bold py-2 rounded hover:bg-blue-700 transition flex items-center justify-center gap-1">
+                    <span>⚡</span> Build Workflow
+                </button>`;
+            
+            // Watch Button Logic: For single, specific video. For batch, "Watch First" or "Overview".
+            let watchBtnText = matches.length === 1 ? `▶ ${matches[0].video.title}` : `▶ Watch Overview`;
+            let watchAction = matches.length === 1 ? `openDetailModal('${matches[0].video.id}')` : `openDetailModal('${matches[0].video.id}')`; // Batch watches first video for demo
+
+            const watchBtn = `
+                <button onclick="${watchAction}" class="flex-1 bg-gray-100 text-gray-700 text-xs font-bold py-2 rounded hover:bg-gray-200 transition truncate px-1" title="${watchBtnText}">
+                    ${watchBtnText}
+                </button>`;
+
+            let contentHTML = '';
+
+            // Header Logic
+            if (matches.length === 1) {
+                const m = matches[0];
+                contentHTML = `
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[10px] font-bold uppercase text-blue-600 bg-blue-50 px-2 py-1 rounded">${m.video.type}</span>
+                            <button onclick="document.getElementById('protocol-popup').style.display='none'" class="text-gray-400 hover:text-red-500">×</button>
+                        </div>
+                        <h4 class="font-bold text-gray-800 leading-tight">${m.video.title}</h4>
+                        <p class="text-xs text-gray-500 mt-1 mb-3">${m.video.desc}</p>
+                        <div class="flex gap-2">
+                            ${buildBtn}
+                            ${watchBtn}
+                        </div>
+                    </div>
+                `;
+            } else {
+                contentHTML = `
+                    <div class="bg-gray-900 text-white p-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                                <span class="text-xs font-bold uppercase tracking-wider">Workflow Detected</span>
+                            </div>
+                            <button onclick="document.getElementById('protocol-popup').style.display='none'" class="text-gray-400 hover:text-white">×</button>
+                        </div>
+                        <h4 class="font-bold text-lg mb-1">${matches.length} Distinct Steps Found</h4>
+                        <p class="text-xs text-gray-400 mb-4">We identified ${matches.length} unique techniques in this paragraph.</p>
+                        <div class="flex gap-2">
+                            ${buildBtn}
+                            ${watchBtn}
+                        </div>
+                    </div>
+                `;
+            }
+
+            popup.innerHTML = contentHTML;
+
+            // POSITIONING - Strict Viewport Clamping
+            popup.style.display = 'block';
+            const popupW = 340;
+            const popupH = popup.offsetHeight;
+            let left = rect.right + 10;
+            let top = rect.top;
+            
+            // Check Right Edge
+            if (left + popupW > window.innerWidth - 20) {
+                left = rect.left - popupW - 10;
+            }
+            // Check Left Edge
+            if (left < 20) {
+                left = 20;
+            }
+            
+            // Check Bottom Edge (Avoid covering workflow panel if active)
+            const workflowHeight = 220;
+            const bottomThreshold = window.innerHeight - 20; // 20px padding
+            
+            if (top + popupH > bottomThreshold) {
+                // Flip upwards if not enough space below
+                top = rect.top - popupH - 10;
+            }
+            
+            // Check Top Edge
+            if (top < 20) {
+                top = 20;
+            }
+
+            popup.style.left = `${left}px`;
+            popup.style.top = `${top}px`;
+        }
+
+        // --- 4. WORKFLOW BUILDER LOGIC ---
         const workflowPanel = document.getElementById('workflow-panel');
         const workflowCanvas = document.getElementById('workflow-canvas');
-        const toastContainer = document.getElementById('toast-container');
-        const clipHistory = document.getElementById('clip-history');
-        const detailModal = document.getElementById('detail-modal');
-        const detailContent = document.getElementById('detail-modal-content');
 
-        let isSidebarOpen = false;
-
-        // --- SIDEBAR LOGIC ---
-        function toggleSidebar() {
-            const sidebar = document.getElementById('extension-sidebar');
-            isSidebarOpen = !isSidebarOpen;
-            if (isSidebarOpen) {
-                sidebar.classList.add('open');
-            } else {
-                sidebar.classList.remove('open');
-            }
+        function addSingleToWorkflow(vidId) {
+            const video = joveDatabase.find(v => v.id === vidId);
+            if(video) createNode(video);
+            popup.style.display = 'none'; // Close popup on action
+            showToast("Step added to workflow");
         }
 
-        // --- TOAST LOGIC ---
-        function showToast(message) {
-            const toast = document.createElement('div');
-            toast.className = `bg-gray-800 text-white px-4 py-2 rounded shadow-lg mb-2 flex items-center gap-2 text-sm transform transition-all duration-300 translate-y-2 opacity-0`;
-            toast.innerHTML = `<span class="text-green-400">✓</span> ${message}`;
-            toastContainer.appendChild(toast);
-            requestAnimationFrame(() => toast.classList.remove('translate-y-2', 'opacity-0'));
-            setTimeout(() => {
-                toast.classList.add('opacity-0');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
+        function addBatchToWorkflow() {
+            popup.style.display = 'none'; // Close popup on action
+            showToast(`Generating ${currentMatches.length} step workflow...`);
+            
+            // Show panel
+            workflowPanel.style.display = 'flex';
+
+            // Sequential Add Animation
+            currentMatches.forEach((match, i) => {
+                setTimeout(() => {
+                    createNode(match.video);
+                }, i * 300); // 300ms delay between nodes
+            });
         }
 
-        // --- MATCHING LOGIC ---
-        function findBestMatch(text, dataset) {
-            for (const key in dataset) {
-                if (text.toLowerCase().includes(key.toLowerCase())) return dataset[key];
-            }
-            return null;
-        }
-
-        function getSelectedText() {
-            const selection = window.getSelection();
-            return selection.rangeCount > 0 ? selection.toString().trim() : '';
-        }
-
-        // --- POPUP LOGIC ---
-        function updatePopup(selectedText) {
-            const match = findBestMatch(selectedText, protocolMatches);
-
-            if (match) {
-                const selection = window.getSelection();
-                if (selection.rangeCount === 0) return;
-                const range = selection.getRangeAt(0);
-                const rect = range.getBoundingClientRect();
-
-                popup.innerHTML = `
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-bold uppercase text-blue-600 bg-blue-50 px-2 py-0.5 rounded">${match.match_type}</span>
-                        <button class="text-gray-400 hover:text-gray-600" onclick="document.getElementById('protocol-popup').style.display='none'">×</button>
-                    </div>
-                    <h4 class="font-bold text-gray-800 mb-1 leading-tight">${match.title}</h4>
-                    <p class="text-xs text-gray-500 mb-3">${match.desc}</p>
-                    
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="addToWorkflow('${match.id}')" class="bg-blue-600 text-white text-xs font-bold py-2 rounded hover:bg-blue-700 transition">
-                            + Add to Workflow
-                        </button>
-                        <button onclick="openDetailModal('${match.id}')" class="bg-gray-100 text-gray-700 text-xs font-bold py-2 rounded hover:bg-gray-200 transition truncate px-1" title="Watch ${match.title}">
-                            ▶ ${match.title}
-                        </button>
-                    </div>
-                `;
-
-                popup.style.display = 'block';
-                popup.style.visibility = 'hidden'; 
-                
-                const popupW = popup.offsetWidth;
-                const popupH = popup.offsetHeight;
-                const isPanelVisible = getComputedStyle(workflowPanel).display !== 'none';
-                const overlayH = isPanelVisible ? 220 : 0; 
-                const margin = 20;
-
-                let left = rect.right + 10;
-                let top = rect.top;
-
-                if (left + popupW > window.innerWidth - margin) {
-                    left = rect.left - popupW - 10;
-                }
-                
-                if (left < margin) left = margin;
-
-                const maxTop = window.innerHeight - overlayH - popupH - margin;
-                if (top > maxTop) {
-                    top = maxTop;
-                }
-
-                popup.style.left = `${left}px`;
-                popup.style.top = `${top}px`;
-                popup.style.visibility = 'visible';
-            } else {
-                popup.style.display = 'none';
-            }
-        }
-
-        function updateSidebarContent(selectedText) {
-            const match = findBestMatch(selectedText, reagentMatches);
-            if (match) {
-                reagentContent.innerHTML = `
-                    <div class="p-3 bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col gap-3 animate-pulse-once">
-                        <div class="flex items-start gap-3">
-                            <img src="${match.img}" class="w-12 h-12 rounded object-cover border shrink-0">
-                            <div>
-                                <p class="font-bold text-gray-800 text-sm leading-tight">${match.name}</p>
-                                <p class="text-xs text-gray-500">${match.vendor}</p>
-                            </div>
-                        </div>
-                        
-                        <p class="text-xs text-gray-600 leading-snug bg-gray-50 p-2 rounded">${match.desc}</p>
-
-                        <!-- Related Video Thumbnail -->
-                        <div class="bg-gray-100 rounded p-2 flex items-center gap-3 cursor-pointer hover:bg-gray-200 transition group">
-                            <div class="relative w-20 h-12 bg-gray-300 rounded overflow-hidden shrink-0">
-                                 <img src="${match.video_thumb}" class="object-cover w-full h-full opacity-80 group-hover:scale-105 transition">
-                                 <div class="absolute inset-0 flex items-center justify-center"><span class="text-white text-xs drop-shadow-md">▶</span></div>
-                            </div>
-                            <span class="text-xs font-semibold text-blue-700">Watch Product Demo</span>
-                        </div>
-
-                        <div class="flex justify-between items-center mt-1 pt-2 border-t border-gray-100">
-                            <span class="text-sm font-bold text-gray-900">${match.price}</span>
-                            <div class="flex gap-2">
-                                <button class="text-xs border border-blue-600 text-blue-600 px-3 py-1.5 rounded hover:bg-blue-50 font-medium">Buy Now</button>
-                                <button class="text-xs bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700 font-medium">Get Quote</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                const btn = document.getElementById('sidebar-toggle');
-                btn.classList.add('bg-green-600');
-                setTimeout(() => btn.classList.remove('bg-green-600'), 1000);
-            }
-        }
-
-        // --- WORKFLOW BUILDER LOGIC ---
-        function getMatchById(id) {
-            for (let key in protocolMatches) {
-                if (protocolMatches[key].id === id) return protocolMatches[key];
-            }
-            return null;
-        }
-
-        function addToWorkflow(id) {
-            const match = getMatchById(id);
-            if (!match) return;
-
-            popup.style.display = 'none';
-
+        function createNode(video) {
             if (getComputedStyle(workflowPanel).display === 'none') {
                 workflowPanel.style.display = 'flex';
             }
 
             const node = document.createElement('div');
             node.className = 'workflow-node group';
-            // Click event to open details
-            node.onclick = () => openDetailModal(id);
-            
+            node.onclick = () => openDetailModal(video.id);
+
             let icon = '⚡';
-            if (match.match_type === 'Method') icon = '🧪';
-            if (match.match_type === 'Technique') icon = '🖐️';
+            if (video.type === 'Method') icon = '🧪';
+            if (video.type === 'Technique') icon = '🖐️';
 
             node.innerHTML = `
                 <div class="flex justify-between items-start mb-2">
                     <span class="text-xl">${icon}</span>
-                    <!-- stopPropagation prevents the modal from opening when clicking delete -->
-                    <button onclick="removeNode(this, event)" class="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition">×</button>
+                    <button onclick="removeNode(this, event)" class="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition">×</button>
                 </div>
-                <h5 class="font-bold text-gray-800 text-sm mb-1 leading-tight">${match.title}</h5>
+                <h5 class="font-bold text-gray-800 text-sm mb-1 leading-tight line-clamp-2">${video.title}</h5>
                 <div class="flex items-center justify-between mt-2">
-                    <span class="text-[10px] text-gray-500 font-mono uppercase tracking-wide">Step ${workflowCanvas.children.length + 1}</span>
-                    <span class="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-medium">Info ↗</span>
+                    <span class="text-[10px] text-gray-400 font-mono uppercase tracking-wide">Step ${workflowCanvas.children.length + 1}</span>
+                    <span class="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-medium">Info</span>
                 </div>
             `;
 
             workflowCanvas.appendChild(node);
             workflowCanvas.scrollTo({ left: workflowCanvas.scrollWidth, behavior: 'smooth' });
             
-            showToast("Added to Workflow Builder");
-            
-            if(clipHistory.textContent === 'No clips yet.') clipHistory.innerHTML = '';
-            clipHistory.innerHTML += `<div class="mb-2 pb-2 border-b border-gray-100 last:border-0"><p class="text-gray-800 font-medium">${match.title}</p><p class="text-xs text-gray-400">${new Date().toLocaleTimeString()}</p></div>`;
+            // Update History
+            const hist = document.getElementById('clip-history');
+            if(hist.innerText.includes('No clips')) hist.innerHTML = '';
+            hist.innerHTML += `<div class="mb-2 pb-2 border-b border-gray-100"><p class="text-gray-800 font-medium text-xs">${video.title}</p></div>`;
         }
 
-        function removeNode(btn, event) {
-            // Stop click from bubbling to the node wrapper (which opens the modal)
-            if(event) event.stopPropagation();
-            
+        function removeNode(btn, e) {
+            e.stopPropagation();
             btn.closest('.workflow-node').remove();
-            if (workflowCanvas.children.length === 0) {
-                 workflowPanel.style.display = 'none';
-            }
+            if(workflowCanvas.children.length === 0) workflowPanel.style.display = 'none';
         }
 
         function clearWorkflow() {
@@ -707,74 +750,118 @@
             workflowPanel.style.display = 'none';
         }
 
-        // --- MODAL LOGIC ---
-        function openDetailModal(id) {
-            const match = getMatchById(id);
-            if(!match) return;
-
-            // Hide popup if open
-            popup.style.display = 'none';
-
-            detailContent.innerHTML = `
-                <div class="relative w-full h-48 bg-gray-900 flex items-center justify-center group cursor-pointer">
-                    <div class="absolute inset-0 bg-cover bg-center opacity-60" style="background-image: url('https://placehold.co/600x400/0056b3/ffffff?text=${encodeURIComponent(match.title)}');"></div>
-                    <div class="z-10 bg-white/20 backdrop-blur-sm p-4 rounded-full group-hover:scale-110 transition-transform">
-                        <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"></path></svg>
+        // --- 5. MODAL & UTILS ---
+        function openDetailModal(vidId) {
+            const video = joveDatabase.find(v => v.id === vidId);
+            if(!video) return;
+            
+            const modal = document.getElementById('detail-modal');
+            const content = document.getElementById('detail-modal-content');
+            
+            content.innerHTML = `
+                <div class="relative w-full h-56 bg-gray-900 flex items-center justify-center">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    <div class="z-10 bg-white/20 backdrop-blur-md p-4 rounded-full cursor-pointer hover:scale-110 transition">
+                        <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"></path></svg>
                     </div>
-                    <span class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded font-mono">${match.duration}</span>
+                    <span class="absolute bottom-3 right-3 bg-black/80 text-white text-xs px-2 py-1 rounded font-mono">${video.duration}</span>
                 </div>
-                
                 <div class="p-6">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">${match.match_type}</span>
-                            <h2 class="text-2xl font-bold text-gray-900 mt-1">${match.title}</h2>
-                        </div>
-                        <button onclick="closeDetailModal()" class="text-gray-400 hover:text-gray-600 bg-gray-100 p-2 rounded-full">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </button>
-                    </div>
-                    
-                    <p class="text-gray-600 text-sm leading-relaxed mb-6">
-                        ${match.long_desc}
-                    </p>
-
+                    <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">${video.type}</span>
+                    <h2 class="text-2xl font-bold text-gray-900 mt-1 mb-2">${video.title}</h2>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-6">${video.desc} This video demonstrates specific techniques related to the highlighted protocol step, ensuring reduced experimental error.</p>
                     <div class="flex gap-3">
-                        <button class="flex-1 bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 transition shadow-sm">
-                            Access Full Protocol
-                        </button>
-                        <button class="flex-1 bg-white border border-gray-300 text-gray-700 font-semibold py-2.5 rounded-lg hover:bg-gray-50 transition">
-                            View Materials List
-                        </button>
+                        <button class="flex-1 bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 shadow-md transition">Watch Full Video</button>
+                        <button class="flex-1 bg-white border border-gray-300 text-gray-700 font-bold py-3 rounded-lg hover:bg-gray-50 transition">View Materials</button>
                     </div>
                 </div>
             `;
-            detailModal.style.display = 'flex';
+            modal.style.display = 'flex';
         }
 
-        function closeDetailModal(event) {
-            if (event) {
-                // If clicked directly on the background (id=detail-modal), close it
-                if(event.target.id === 'detail-modal') {
-                    detailModal.style.display = 'none';
-                }
-            } else {
-                // Manual close
-                detailModal.style.display = 'none';
-            }
+        function closeDetailModal() {
+            document.getElementById('detail-modal').style.display = 'none';
         }
 
-        // --- EVENTS ---
-        let debounceTimer;
+        function showToast(msg) {
+            const t = document.createElement('div');
+            t.className = "bg-gray-800 text-white px-4 py-3 rounded-lg shadow-xl text-sm flex items-center gap-2 transform transition translate-y-2 opacity-0";
+            t.innerHTML = `<span class="text-green-400">✓</span> ${msg}`;
+            document.getElementById('toast-container').appendChild(t);
+            requestAnimationFrame(() => t.classList.remove('translate-y-2', 'opacity-0'));
+            setTimeout(() => { t.classList.add('opacity-0'); setTimeout(() => t.remove(), 500); }, 3000);
+        }
+
+        function toggleSidebar() {
+            const toggleBtn = document.getElementById('sidebar-toggle');
+            toggleBtn.classList.remove('shine-active'); // Stop shining when opened
+            document.getElementById('extension-sidebar').classList.toggle('open');
+        }
+
+        // --- EVENT LISTENERS ---
+        // Mouseup debounce for selection
+        let dbTimer;
         document.addEventListener('mouseup', () => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                const text = getSelectedText();
-                if (text.length > 3) {
-                    updatePopup(text);
-                    updateSidebarContent(text);
+            clearTimeout(dbTimer);
+            dbTimer = setTimeout(() => {
+                const text = window.getSelection().toString().trim();
+                let foundContent = false; // Flag to trigger shine
+
+                // 1. Check Reagents - Trigger SHINE (Passive)
+                for (let key in reagentMatches) {
+                    if (text.includes(key) || text.includes(key.split(' ')[0])) {
+                        const m = reagentMatches[key];
+                        document.getElementById('reagent-content').innerHTML = `
+                            <div class="p-4 bg-white/80 border border-gray-200 rounded-lg shadow-sm backdrop-blur-sm transition hover:shadow-md">
+                                <div class="flex gap-3 mb-2">
+                                    <img src="${m.img}" class="w-12 h-12 object-cover rounded bg-gray-100">
+                                    <div><p class="font-bold text-sm text-gray-900">${m.name}</p><p class="text-xs text-gray-500">${m.vendor}</p></div>
+                                </div>
+                                <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
+                                    <span class="font-bold text-gray-900 text-sm">${m.price}</span>
+                                    <button class="bg-green-600 text-white text-xs px-3 py-1.5 rounded hover:bg-green-700">Get Quote</button>
+                                </div>
+                            </div>
+                        `;
+                        foundContent = true;
+                    }
+                }
+
+                // 2. Check Videos/Steps & Populate Sidebar (Passive)
+                if (text.length > 5) {
+                    const matches = analyzeText(text);
+                    updatePopup(text); // Keep existing popup logic for quick action
+                    
+                    if (matches.length > 0) {
+                        foundContent = true;
+                        const videoContainer = document.getElementById('video-content');
+                        videoContainer.innerHTML = matches.map(m => `
+                            <div class="p-3 bg-white/80 border border-blue-100 rounded-lg shadow-sm backdrop-blur-sm flex gap-3 cursor-pointer hover:bg-blue-50 transition group" onclick="openDetailModal('${m.video.id}')">
+                                <div class="relative w-16 h-16 bg-gray-200 rounded-md overflow-hidden shrink-0">
+                                    <!-- Placeholder Thumbnail -->
+                                    <div class="absolute inset-0 bg-blue-900/10 flex items-center justify-center group-hover:bg-blue-900/20">
+                                        <span class="text-xs text-blue-700">▶</span>
+                                    </div>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex justify-between items-start">
+                                        <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wider">${m.video.type}</span>
+                                        <span class="text-[10px] text-gray-400 font-mono">${m.video.duration}</span>
+                                    </div>
+                                    <p class="font-bold text-sm text-gray-900 leading-tight mt-0.5 truncate">${m.video.title}</p>
+                                    <p class="text-xs text-gray-500 mt-1 line-clamp-1">${m.video.desc}</p>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
                 } else {
-                    popup.style.display = 'none';
+                    document.getElementById('protocol-popup').style.display = 'none';
+                }
+
+                // Trigger Shine if anything found and sidebar is closed
+                const sidebar = document.getElementById('extension-sidebar');
+                if (foundContent && !sidebar.classList.contains('open')) {
+                    document.getElementById('sidebar-toggle').classList.add('shine-active');
                 }
             }, 300);
         });
