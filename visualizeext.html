@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JoVE Visualize PoC: Workflow Builder</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles */
+        :root {
+            --jove-blue: #0056b3; 
+            --jove-light: #e0f2ff;
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc;
+            /* Padding reduced since panel is hidden by default, but kept for scrolling when active */
+            padding-bottom: 220px; 
+        }
+        #article-content {
+            cursor: pointer;
+            line-height: 1.8;
+            font-size: 1.15rem;
+            text-align: justify;
+            user-select: text;
+        }
+
+        /* --- SLIDE-OUT EXTENSION SIDEBAR --- */
+        #extension-sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px; /* Hidden by default */
+            width: 380px;
+            height: 100vh;
+            background-color: #ffffff;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.15);
+            z-index: 5000;
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            border-left: 4px solid var(--jove-blue);
+        }
+        #extension-sidebar.open {
+            right: 0;
+        }
+        #sidebar-toggle {
+            position: fixed;
+            top: 120px;
+            right: 0;
+            background: var(--jove-blue);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px 0 0 8px;
+            cursor: pointer;
+            z-index: 5001;
+            box-shadow: -2px 2px 10px rgba(0,0,0,0.2);
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+        #extension-sidebar.open + #sidebar-toggle {
+            right: 380px; /* Move button with sidebar */
+        }
+
+        /* --- GLASSMORPHIC WORKFLOW BUILDER --- */
+        #workflow-panel {
+            position: fixed;
+            bottom: 20px; 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 95%; 
+            max-width: 1200px;
+            height: 200px;
+            
+            /* Glassmorphism Styles */
+            background: rgba(224, 242, 254, 0.65); /* Blueish tint */
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            
+            border-radius: 24px;
+            z-index: 4000;
+            /* HIDDEN BY DEFAULT */
+            display: none; 
+            flex-direction: column;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        @keyframes slideUp {
+            from { transform: translate(-50%, 100px); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+        
+        #workflow-panel:hover {
+            transform: translateX(-50%) translateY(-5px);
+        }
+
+        #workflow-header {
+            background: rgba(255, 255, 255, 0.4);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        #workflow-canvas {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            gap: 20px;
+            overflow-x: auto;
+            /* Subtle grid pattern for technical feel */
+            background-image: radial-gradient(rgba(0, 86, 179, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        /* Custom Scrollbar for the glass panel */
+        #workflow-canvas::-webkit-scrollbar {
+            height: 8px;
+        }
+        #workflow-canvas::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+        }
+        #workflow-canvas::-webkit-scrollbar-thumb {
+            background: rgba(0, 86, 179, 0.3);
+            border-radius: 10px;
+        }
+
+        /* Workflow Nodes */
+        .workflow-node {
+            min-width: 180px;
+            max-width: 180px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 86, 179, 0.3);
+            border-radius: 16px;
+            padding: 12px;
+            position: relative;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            flex-shrink: 0;
+            cursor: pointer; /* Changed to pointer */
+            transition: all 0.2s ease;
+        }
+        .workflow-node:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-color: rgba(0, 86, 179, 0.6);
+        }
+        .workflow-node::after {
+            /* Arrow Connector */
+            content: "→";
+            position: absolute;
+            right: -24px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: rgba(0, 86, 179, 0.5);
+            font-weight: bold;
+        }
+        .workflow-node:last-child::after {
+            display: none;
+        }
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* --- POPUP --- */
+        #protocol-popup {
+            position: fixed; 
+            background: #fff;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            z-index: 6000; 
+            width: 320px; 
+            border: 1px solid #e2e8f0;
+            display: none;
+        }
+
+        /* --- DETAIL MODAL --- */
+        #detail-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 8000;
+            display: none; /* Flex when active */
+            align-items: center;
+            justify-content: center;
+        }
+        #detail-modal-content {
+            background: white;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: modalScale 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes modalScale {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* Toast */
+        #toast-container {
+            position: fixed;
+            bottom: 240px; 
+            right: 2rem;
+            z-index: 7000;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR TOGGLE BUTTON -->
+    <button id="sidebar-toggle" onclick="toggleSidebar()">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+        <span>Jovie</span>
+    </button>
+
+    <!-- SLIDE-OUT SIDEBAR -->
+    <aside id="extension-sidebar" class="p-6 gap-6">
+        <div class="flex items-center justify-between border-b pb-4 shrink-0">
+            <h2 class="text-3xl font-extrabold text-blue-900 tracking-tight">Jovie</h2>
+            <button onclick="toggleSidebar()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <!-- 1. Safety & Compliance Section (Top) -->
+        <div class="shrink-0">
+            <h3 class="font-bold text-[#0056b3] mb-2 uppercase text-xs tracking-wider">Safety & Compliance</h3>
+            <div class="text-xs text-gray-600 p-4 bg-red-50 border border-red-200 rounded-lg shadow-sm">
+                <div class="flex items-start gap-2">
+                    <svg class="w-5 h-5 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    <div>
+                        <span class="font-bold text-red-700">Biohazard Alert:</span> 
+                        Protocol involves FACS. Ensure <span class="font-semibold">Biosafety Level 2</span> containment.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Required Equipments (Middle) -->
+        <div class="shrink-0">
+            <h3 class="font-bold text-[#0056b3] mb-2 uppercase text-xs tracking-wider">Required Equipments</h3>
+            <div id="reagent-content" class="space-y-3">
+                <div class="p-6 bg-gray-50 rounded-lg border border-gray-200 text-center border-dashed">
+                    <p class="text-sm text-gray-500">Highlight specific reagents or equipment in the text to see details, pricing, and demos.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Clip History (Bottom, fills remaining space) -->
+        <div class="flex-1 overflow-y-auto min-h-0">
+             <h3 class="font-bold text-[#0056b3] mb-2 uppercase text-xs tracking-wider sticky top-0 bg-white py-2">Clip History</h3>
+             <div id="clip-history" class="text-sm text-gray-400 italic">No clips yet.</div>
+        </div>
+    </aside>
+
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="max-w-4xl mx-auto p-8 pt-12">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">
+                Simulated Journal Article
+            </h1>
+            <p class="text-gray-500 mt-2">Highlight text to visualize the workflow.</p>
+        </header>
+
+        <main class="bg-white p-10 rounded-2xl shadow-xl border border-gray-100" id="article-main">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 pb-4 border-b">
+                Optimization of Novel CRISPR-Cas9 Screening Protocols
+            </h2>
+
+            <div id="article-content" class="text-gray-700 space-y-6">
+                <p>
+                    The recent shift towards high-throughput genetic screening necessitates robust, reproducible protocols. This work focused on streamlining the crucial steps of the process. We began with standard cell culture techniques, ensuring all reagents were pre-warmed to $37^\circ \text{C}$ to maintain cell viability.
+                </p>
+                <p>
+                    **Method Step 1: Transfection.** Plasmid transfection was performed using the **Lipofectamine 3000 reagent** following the manufacturer’s recommendations. This is a highly sensitive step that requires precise **pipetting volume and speed** to minimize cell toxicity. After 48 hours, successful integration was confirmed by fluorescence microscopy using a **Zeiss LSM 980 confocal microscope**.
+                </p>
+                <p>
+                    **Method Step 2: Genomic Extraction & Validation.** Post-transfection, genomic DNA (gDNA) was extracted. The efficiency of gene editing was then quantified using **quantitative polymerase chain reaction (qPCR)**. The assay was run for 40 cycles on a **Bio-Rad CFX96 Real-Time System**. The data showed minimal off-target effects, a direct result of our optimized **guide RNA design protocol**.
+                </p>
+                <p>
+                    **Method Step 3: Cell Sorting.** For subsequent single-cell analysis, a subpopulation was isolated. The cells were then immediately prepared for **Fluorescence-Activated Cell Sorting (FACS)** using a **BD FACSAria Fusion sorter**. This required careful calibration of the instrument's fluidics pressure and nozzle alignment—a process often poorly described in text-only SOPs. The isolated cells were frozen in liquid nitrogen for long-term storage.
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <!-- GLASSMORPHIC WORKFLOW BUILDER (Initially Hidden) -->
+    <div id="workflow-panel">
+        <div id="workflow-header" class="h-10 flex items-center justify-between px-6 shrink-0">
+            <div class="flex items-center gap-2">
+                <span class="text-blue-700 font-bold text-sm tracking-wide">MY SOP BUILDER</span>
+                <span class="text-[10px] text-gray-600 bg-white/50 px-2 py-0.5 rounded-full">Draft v1.0</span>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="clearWorkflow()" class="text-xs text-gray-600 hover:text-red-600 font-medium px-2 py-1 transition">Clear</button>
+                <button class="bg-blue-600/90 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm transition flex items-center gap-1 backdrop-blur-sm">
+                    Export
+                </button>
+            </div>
+        </div>
+
+        <div id="workflow-canvas">
+           <!-- Nodes will be added here -->
+        </div>
+    </div>
+    
+    <!-- POPUP ELEMENT -->
+    <div id="protocol-popup"></div>
+
+    <!-- DETAIL MODAL -->
+    <div id="detail-modal" onclick="closeDetailModal(event)">
+        <div id="detail-modal-content" onclick="event.stopPropagation()">
+            <!-- Content Injected via JS -->
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <script>
+        // --- DATA & STATE ---
+        const protocolMatches = {
+            "quantitative polymerase chain reaction (qPCR)": {
+                id: "qpcr",
+                title: "qPCR Setup",
+                desc: "Master mix preparation, thermal cycling parameters, and fluorescence threshold settings.",
+                long_desc: "This protocol visualizes the critical steps of setting up a quantitative PCR run. Key focus areas include: <br>• Correct preparation of the Master Mix on ice.<br>• Loading of the 96-well plate to avoid air bubbles.<br>• Setting baseline and threshold values in the software.",
+                video_url: "#",
+                duration: "4:15",
+                match_type: "Method"
+            },
+            "pipetting volume and speed": {
+                id: "pipet",
+                title: "Precision Pipetting",
+                desc: "Techniques for micropipette adjustment and plunger control.",
+                long_desc: "Learn the proper technique for high-precision liquid handling. This module covers:<br>• Pre-wetting the tip.<br>• Aspirating at 90 degrees and dispensing at 45 degrees.<br>• Controlled plunger release to prevent aerosols.",
+                video_url: "#",
+                duration: "2:30",
+                match_type: "Technique"
+            },
+            "guide RNA design protocol": {
+                id: "grna",
+                title: "gRNA Design",
+                desc: "Strategies for minimizing off-target effects in CRISPR experiments.",
+                long_desc: "An animated guide to designing high-efficiency guide RNAs. Topics include:<br>• PAM sequence selection.<br>• GC content optimization.<br>• Using bioinformatic tools to predict off-target binding sites.",
+                video_url: "#",
+                duration: "3:45",
+                match_type: "Concept"
+            },
+            "Fluorescence-Activated Cell Sorting (FACS)": {
+                id: "facs",
+                title: "FACS Calibration",
+                desc: "Instrument fluidics setup, nozzle alignment, and droplet delay calculation.",
+                long_desc: "A detailed visual walkthrough of the BD FACSAria Fusion setup.<br>• Sheath fluid pressure regulation.<br>• Accudrop delay determination.<br>• Gating strategy for single-cell sorting.",
+                video_url: "#",
+                duration: "6:20",
+                match_type: "Method"
+            },
+        };
+
+        const reagentMatches = {
+            "Lipofectamine 3000 reagent": { 
+                name: "Lipofectamine 3000", 
+                vendor: "Thermo Fisher", 
+                price: "$420.00", 
+                img: "https://placehold.co/100x50/1e88e5/ffffff?text=REAGENT",
+                desc: "High-efficiency transfection reagent for difficult-to-transfect cells. Optimized for plasmid DNA and siRNA delivery.",
+                video_thumb: "https://placehold.co/100x60/333/fff?text=Demo",
+                purchase_url: "#"
+            },
+            "Zeiss LSM 980 confocal microscope": { 
+                name: "LSM 980 Microscope", 
+                vendor: "Zeiss", 
+                price: "Request Quote", 
+                img: "https://placehold.co/100x50/ffb300/000000?text=MICROSCOPE",
+                desc: "Airyscan 2 multiplexing for 4D super-resolution imaging. Ideal for live cell imaging and sensitive fluorescence detection.",
+                video_thumb: "https://placehold.co/100x60/333/fff?text=Demo",
+                purchase_url: "#"
+            },
+            "Bio-Rad CFX96 Real-Time System": { 
+                name: "CFX96 qPCR System", 
+                vendor: "Bio-Rad", 
+                price: "$18,000", 
+                img: "https://placehold.co/100x50/43a047/ffffff?text=QPCR+SYS",
+                desc: "Six-channel real-time PCR detection system with precise thermal cycling and C1000 Touch thermal cycler chassis.",
+                video_thumb: "https://placehold.co/100x60/333/fff?text=Demo",
+                purchase_url: "#"
+            },
+            "BD FACSAria Fusion sorter": { 
+                name: "FACSAria Fusion Sorter", 
+                vendor: "BD Biosciences", 
+                price: "Request Quote", 
+                img: "https://placehold.co/100x50/d81b60/ffffff?text=SORTER",
+                desc: "High-speed cell sorter with biosafety cabinet integration. Delivers exceptional multicolor performance.",
+                video_thumb: "https://placehold.co/100x60/333/fff?text=Demo",
+                purchase_url: "#"
+            },
+        };
+
+        const popup = document.getElementById('protocol-popup');
+        const reagentContent = document.getElementById('reagent-content');
+        const workflowPanel = document.getElementById('workflow-panel');
+        const workflowCanvas = document.getElementById('workflow-canvas');
+        const toastContainer = document.getElementById('toast-container');
+        const clipHistory = document.getElementById('clip-history');
+        const detailModal = document.getElementById('detail-modal');
+        const detailContent = document.getElementById('detail-modal-content');
+
+        let isSidebarOpen = false;
+
+        // --- SIDEBAR LOGIC ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById('extension-sidebar');
+            isSidebarOpen = !isSidebarOpen;
+            if (isSidebarOpen) {
+                sidebar.classList.add('open');
+            } else {
+                sidebar.classList.remove('open');
+            }
+        }
+
+        // --- TOAST LOGIC ---
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = `bg-gray-800 text-white px-4 py-2 rounded shadow-lg mb-2 flex items-center gap-2 text-sm transform transition-all duration-300 translate-y-2 opacity-0`;
+            toast.innerHTML = `<span class="text-green-400">✓</span> ${message}`;
+            toastContainer.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.remove('translate-y-2', 'opacity-0'));
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // --- MATCHING LOGIC ---
+        function findBestMatch(text, dataset) {
+            for (const key in dataset) {
+                if (text.toLowerCase().includes(key.toLowerCase())) return dataset[key];
+            }
+            return null;
+        }
+
+        function getSelectedText() {
+            const selection = window.getSelection();
+            return selection.rangeCount > 0 ? selection.toString().trim() : '';
+        }
+
+        // --- POPUP LOGIC ---
+        function updatePopup(selectedText) {
+            const match = findBestMatch(selectedText, protocolMatches);
+
+            if (match) {
+                const selection = window.getSelection();
+                if (selection.rangeCount === 0) return;
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+
+                popup.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs font-bold uppercase text-blue-600 bg-blue-50 px-2 py-0.5 rounded">${match.match_type}</span>
+                        <button class="text-gray-400 hover:text-gray-600" onclick="document.getElementById('protocol-popup').style.display='none'">×</button>
+                    </div>
+                    <h4 class="font-bold text-gray-800 mb-1 leading-tight">${match.title}</h4>
+                    <p class="text-xs text-gray-500 mb-3">${match.desc}</p>
+                    
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="addToWorkflow('${match.id}')" class="bg-blue-600 text-white text-xs font-bold py-2 rounded hover:bg-blue-700 transition">
+                            + Add to Workflow
+                        </button>
+                        <button onclick="openDetailModal('${match.id}')" class="bg-gray-100 text-gray-700 text-xs font-bold py-2 rounded hover:bg-gray-200 transition truncate px-1" title="Watch ${match.title}">
+                            ▶ ${match.title}
+                        </button>
+                    </div>
+                `;
+
+                popup.style.display = 'block';
+                popup.style.visibility = 'hidden'; 
+                
+                const popupW = popup.offsetWidth;
+                const popupH = popup.offsetHeight;
+                const isPanelVisible = getComputedStyle(workflowPanel).display !== 'none';
+                const overlayH = isPanelVisible ? 220 : 0; 
+                const margin = 20;
+
+                let left = rect.right + 10;
+                let top = rect.top;
+
+                if (left + popupW > window.innerWidth - margin) {
+                    left = rect.left - popupW - 10;
+                }
+                
+                if (left < margin) left = margin;
+
+                const maxTop = window.innerHeight - overlayH - popupH - margin;
+                if (top > maxTop) {
+                    top = maxTop;
+                }
+
+                popup.style.left = `${left}px`;
+                popup.style.top = `${top}px`;
+                popup.style.visibility = 'visible';
+            } else {
+                popup.style.display = 'none';
+            }
+        }
+
+        function updateSidebarContent(selectedText) {
+            const match = findBestMatch(selectedText, reagentMatches);
+            if (match) {
+                reagentContent.innerHTML = `
+                    <div class="p-3 bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col gap-3 animate-pulse-once">
+                        <div class="flex items-start gap-3">
+                            <img src="${match.img}" class="w-12 h-12 rounded object-cover border shrink-0">
+                            <div>
+                                <p class="font-bold text-gray-800 text-sm leading-tight">${match.name}</p>
+                                <p class="text-xs text-gray-500">${match.vendor}</p>
+                            </div>
+                        </div>
+                        
+                        <p class="text-xs text-gray-600 leading-snug bg-gray-50 p-2 rounded">${match.desc}</p>
+
+                        <!-- Related Video Thumbnail -->
+                        <div class="bg-gray-100 rounded p-2 flex items-center gap-3 cursor-pointer hover:bg-gray-200 transition group">
+                            <div class="relative w-20 h-12 bg-gray-300 rounded overflow-hidden shrink-0">
+                                 <img src="${match.video_thumb}" class="object-cover w-full h-full opacity-80 group-hover:scale-105 transition">
+                                 <div class="absolute inset-0 flex items-center justify-center"><span class="text-white text-xs drop-shadow-md">▶</span></div>
+                            </div>
+                            <span class="text-xs font-semibold text-blue-700">Watch Product Demo</span>
+                        </div>
+
+                        <div class="flex justify-between items-center mt-1 pt-2 border-t border-gray-100">
+                            <span class="text-sm font-bold text-gray-900">${match.price}</span>
+                            <div class="flex gap-2">
+                                <button class="text-xs border border-blue-600 text-blue-600 px-3 py-1.5 rounded hover:bg-blue-50 font-medium">Buy Now</button>
+                                <button class="text-xs bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700 font-medium">Get Quote</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                const btn = document.getElementById('sidebar-toggle');
+                btn.classList.add('bg-green-600');
+                setTimeout(() => btn.classList.remove('bg-green-600'), 1000);
+            }
+        }
+
+        // --- WORKFLOW BUILDER LOGIC ---
+        function getMatchById(id) {
+            for (let key in protocolMatches) {
+                if (protocolMatches[key].id === id) return protocolMatches[key];
+            }
+            return null;
+        }
+
+        function addToWorkflow(id) {
+            const match = getMatchById(id);
+            if (!match) return;
+
+            popup.style.display = 'none';
+
+            if (getComputedStyle(workflowPanel).display === 'none') {
+                workflowPanel.style.display = 'flex';
+            }
+
+            const node = document.createElement('div');
+            node.className = 'workflow-node group';
+            // Click event to open details
+            node.onclick = () => openDetailModal(id);
+            
+            let icon = '⚡';
+            if (match.match_type === 'Method') icon = '🧪';
+            if (match.match_type === 'Technique') icon = '🖐️';
+
+            node.innerHTML = `
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-xl">${icon}</span>
+                    <!-- stopPropagation prevents the modal from opening when clicking delete -->
+                    <button onclick="removeNode(this, event)" class="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition">×</button>
+                </div>
+                <h5 class="font-bold text-gray-800 text-sm mb-1 leading-tight">${match.title}</h5>
+                <div class="flex items-center justify-between mt-2">
+                    <span class="text-[10px] text-gray-500 font-mono uppercase tracking-wide">Step ${workflowCanvas.children.length + 1}</span>
+                    <span class="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-medium">Info ↗</span>
+                </div>
+            `;
+
+            workflowCanvas.appendChild(node);
+            workflowCanvas.scrollTo({ left: workflowCanvas.scrollWidth, behavior: 'smooth' });
+            
+            showToast("Added to Workflow Builder");
+            
+            if(clipHistory.textContent === 'No clips yet.') clipHistory.innerHTML = '';
+            clipHistory.innerHTML += `<div class="mb-2 pb-2 border-b border-gray-100 last:border-0"><p class="text-gray-800 font-medium">${match.title}</p><p class="text-xs text-gray-400">${new Date().toLocaleTimeString()}</p></div>`;
+        }
+
+        function removeNode(btn, event) {
+            // Stop click from bubbling to the node wrapper (which opens the modal)
+            if(event) event.stopPropagation();
+            
+            btn.closest('.workflow-node').remove();
+            if (workflowCanvas.children.length === 0) {
+                 workflowPanel.style.display = 'none';
+            }
+        }
+
+        function clearWorkflow() {
+            workflowCanvas.innerHTML = '';
+            workflowPanel.style.display = 'none';
+        }
+
+        // --- MODAL LOGIC ---
+        function openDetailModal(id) {
+            const match = getMatchById(id);
+            if(!match) return;
+
+            // Hide popup if open
+            popup.style.display = 'none';
+
+            detailContent.innerHTML = `
+                <div class="relative w-full h-48 bg-gray-900 flex items-center justify-center group cursor-pointer">
+                    <div class="absolute inset-0 bg-cover bg-center opacity-60" style="background-image: url('https://placehold.co/600x400/0056b3/ffffff?text=${encodeURIComponent(match.title)}');"></div>
+                    <div class="z-10 bg-white/20 backdrop-blur-sm p-4 rounded-full group-hover:scale-110 transition-transform">
+                        <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"></path></svg>
+                    </div>
+                    <span class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded font-mono">${match.duration}</span>
+                </div>
+                
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">${match.match_type}</span>
+                            <h2 class="text-2xl font-bold text-gray-900 mt-1">${match.title}</h2>
+                        </div>
+                        <button onclick="closeDetailModal()" class="text-gray-400 hover:text-gray-600 bg-gray-100 p-2 rounded-full">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                    
+                    <p class="text-gray-600 text-sm leading-relaxed mb-6">
+                        ${match.long_desc}
+                    </p>
+
+                    <div class="flex gap-3">
+                        <button class="flex-1 bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 transition shadow-sm">
+                            Access Full Protocol
+                        </button>
+                        <button class="flex-1 bg-white border border-gray-300 text-gray-700 font-semibold py-2.5 rounded-lg hover:bg-gray-50 transition">
+                            View Materials List
+                        </button>
+                    </div>
+                </div>
+            `;
+            detailModal.style.display = 'flex';
+        }
+
+        function closeDetailModal(event) {
+            if (event) {
+                // If clicked directly on the background (id=detail-modal), close it
+                if(event.target.id === 'detail-modal') {
+                    detailModal.style.display = 'none';
+                }
+            } else {
+                // Manual close
+                detailModal.style.display = 'none';
+            }
+        }
+
+        // --- EVENTS ---
+        let debounceTimer;
+        document.addEventListener('mouseup', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const text = getSelectedText();
+                if (text.length > 3) {
+                    updatePopup(text);
+                    updateSidebarContent(text);
+                } else {
+                    popup.style.display = 'none';
+                }
+            }, 300);
+        });
+
+    </script>
+</body>
+</html>
