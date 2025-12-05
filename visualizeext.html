@@ -13,15 +13,19 @@
             --jove-light: #e0f2ff;
         }
         body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #f8fafc;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+            background-color: #ffffff;
             /* Padding reduced since panel is hidden by default, but kept for scrolling when active */
             padding-bottom: 220px; 
         }
+        
+        /* Serif font for the main article text to look like a journal */
         #article-content {
-            cursor: pointer;
-            line-height: 1.8;
-            font-size: 1.15rem;
+            font-family: 'Merriweather', 'Georgia', serif; 
+            /* cursor: pointer; removed to prevent click icon on hover */
+            line-height: 1.9;
+            font-size: 1.125rem;
+            color: #1f2937;
             text-align: justify;
             user-select: text;
         }
@@ -267,32 +271,115 @@
 
 
     <!-- MAIN CONTENT AREA -->
-    <div class="max-w-4xl mx-auto p-8 pt-12">
-        <header class="text-center mb-12">
-            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">
-                Simulated Journal Article
-            </h1>
-            <p class="text-gray-500 mt-2">Highlight text to visualize the workflow.</p>
-        </header>
+    <div class="max-w-5xl mx-auto p-6 pt-8 font-sans">
+        <!-- Search Bar / Nav Simulation -->
+        <div class="flex items-center gap-4 mb-8 border-b border-gray-200 pb-4">
+            <span class="text-2xl font-bold text-blue-800 tracking-tighter flex items-center gap-1">
+                JoVE<span class="text-gray-500 font-normal text-xl">Scholar</span>
+            </span>
+            <div class="flex-1 relative">
+                <input type="text" class="w-full bg-gray-100 rounded-full h-10 pl-10 pr-4 text-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 transition" placeholder="Search articles, protocols, videos, and more...">
+                <svg class="w-4 h-4 text-gray-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <div class="flex gap-6 text-sm text-gray-600 font-medium">
+                <span class="hover:text-blue-600 cursor-pointer">My Library</span>
+                <span class="hover:text-blue-600 cursor-pointer">Sign In</span>
+            </div>
+        </div>
 
-        <main class="bg-white p-10 rounded-2xl shadow-xl border border-gray-100" id="article-main">
-            <h2 class="text-3xl font-bold text-gray-800 mb-6 pb-4 border-b">
-                Optimization of Novel CRISPR-Cas9 Screening Protocols
-            </h2>
+        <main class="bg-white" id="article-main">
+            <!-- Article Header -->
+            <div class="mb-6">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wide rounded">Journal of Visualized Experiments</span>
+                    <span class="text-xs text-gray-400">•</span>
+                    <span class="text-xs text-gray-500 font-semibold uppercase tracking-wide">Genetics</span>
+                    <span class="text-xs text-gray-400">•</span>
+                    <span class="text-xs text-gray-500">October 2024</span>
+                </div>
+                
+                <h2 class="text-3xl font-bold text-gray-900 mt-2 leading-tight tracking-tight">
+                    Optimization of Novel CRISPR-Cas9 Screening Protocols for High-Throughput Genomic Analysis
+                </h2>
+                
+                <div class="text-sm text-gray-700 mt-4 flex flex-wrap gap-2 items-center">
+                    <span class="font-semibold text-gray-900 underline decoration-dotted decoration-gray-300 cursor-pointer">Dr. Elena Rodriguez<sup>1</sup></span>, 
+                    <span class="cursor-pointer hover:text-blue-600">Markus Weber<sup>1</sup></span>, 
+                    <span class="cursor-pointer hover:text-blue-600">Sarah J. Chen<sup>2</sup></span>,
+                    <span class="cursor-pointer hover:text-blue-600">David A. Miller<sup>3</sup></span>
+                </div>
+                <div class="text-xs text-gray-500 mt-2 italic">
+                    <sup>1</sup>Department of Molecular Biology, University of Zurich; <sup>2</sup>Genomics Institute, MIT; <sup>3</sup>Broad Institute
+                </div>
+            </div>
 
-            <div id="article-content" class="text-gray-700 space-y-6">
-                <p>
-                    The recent shift towards high-throughput genetic screening necessitates robust, reproducible protocols. This work focused on streamlining the crucial steps of the process. We began with standard cell culture techniques, ensuring all reagents were pre-warmed to $37^\circ \text{C}$ to maintain cell viability.
+            <!-- Action Bar -->
+            <div class="flex items-center justify-between border-y border-gray-100 py-3 mb-8">
+                <div class="flex gap-6 text-sm text-gray-600 font-medium">
+                    <button class="flex items-center gap-1.5 hover:text-blue-700 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        PDF
+                    </button>
+                    <button class="flex items-center gap-1.5 hover:text-blue-700 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M8 6a2 2 0 11-4 0h4zM8 6a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V8a2 2 0 00-2-2H8z"></path></svg>
+                        Cite
+                    </button>
+                    <button class="flex items-center gap-1.5 hover:text-blue-700 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                        Save
+                    </button>
+                    <button class="flex items-center gap-1.5 hover:text-blue-700 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                        Share
+                    </button>
+                </div>
+                <div class="flex gap-2">
+                    <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">PMID: 349281</span>
+                    <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">DOI: 10.3791/6251</span>
+                </div>
+            </div>
+
+            <!-- Abstract -->
+            <div class="mb-10 bg-gray-50/50 p-6 rounded-xl border border-gray-100">
+                <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3">Abstract</h3>
+                <p class="text-sm text-gray-800 leading-7 text-justify">
+                    High-throughput genetic screening using CRISPR-Cas9 has revolutionized genomic research. However, variability in transfection efficiency and off-target effects remains a challenge for reproducible data generation. Here, we present an optimized workflow for conducting large-scale CRISPR screens in mammalian cells. This protocol details critical steps including <span class="font-semibold text-gray-900">guide RNA design</span>, high-efficiency lipofection, and <span class="font-semibold text-gray-900">fluorescence-activated cell sorting (FACS)</span> for enrichment. Our results demonstrate a 40% increase in editing efficiency and significantly reduced toxicity compared to standard electroporation methods.
                 </p>
-                <p>
-                    **Method Step 1: Transfection.** Plasmid transfection was performed using the **Lipofectamine 3000 reagent** following the manufacturer’s recommendations. This is a highly sensitive step that requires precise **pipetting volume and speed** to minimize cell toxicity. After 48 hours, successful integration was confirmed by fluorescence microscopy using a **Zeiss LSM 980 confocal microscope**.
-                </p>
-                <p>
-                    **Method Step 2: Genomic Extraction & Validation.** Post-transfection, genomic DNA (gDNA) was extracted. The efficiency of gene editing was then quantified using **quantitative polymerase chain reaction (qPCR)**. The assay was run for 40 cycles on a **Bio-Rad CFX96 Real-Time System**. The data showed minimal off-target effects, a direct result of our optimized **guide RNA design protocol**.
-                </p>
-                <p>
-                    **Method Step 3: Cell Sorting.** For subsequent single-cell analysis, a subpopulation was isolated. The cells were then immediately prepared for **Fluorescence-Activated Cell Sorting (FACS)** using a **BD FACSAria Fusion sorter**. This required careful calibration of the instrument's fluidics pressure and nozzle alignment—a process often poorly described in text-only SOPs. The isolated cells were frozen in liquid nitrogen for long-term storage.
-                </p>
+                <div class="mt-4 flex gap-2">
+                    <span class="text-xs font-semibold text-gray-500 uppercase">Keywords:</span>
+                    <span class="text-xs text-blue-600 hover:underline cursor-pointer">CRISPR-Cas9</span>,
+                    <span class="text-xs text-blue-600 hover:underline cursor-pointer">Gene Editing</span>,
+                    <span class="text-xs text-blue-600 hover:underline cursor-pointer">High-Throughput Screening</span>,
+                    <span class="text-xs text-blue-600 hover:underline cursor-pointer">FACS</span>
+                </div>
+            </div>
+
+            <!-- Content Body (Existing ID for functionality) -->
+            <div class="border-t border-gray-200 pt-8">
+                 <h3 class="text-lg font-bold text-gray-900 mb-4">Methods</h3>
+                <div id="article-content" class="text-gray-800 space-y-6">
+                    <p>
+                        The recent shift towards high-throughput genetic screening necessitates robust, reproducible protocols. This work focused on streamlining the crucial steps of the process. We began with standard cell culture techniques, ensuring all reagents were pre-warmed to 37°C to maintain cell viability.
+                    </p>
+                    <p>
+                        <strong class="font-bold text-gray-900">Step 1: Transfection.</strong> Plasmid transfection was performed using the Lipofectamine 3000 reagent following the manufacturer’s recommendations. This is a highly sensitive step that requires precise pipetting volume and speed to minimize cell toxicity. After 48 hours, successful integration was confirmed by fluorescence microscopy using a Zeiss LSM 980 confocal microscope.
+                    </p>
+                    <p>
+                        <strong class="font-bold text-gray-900">Step 2: Genomic Extraction & Validation.</strong> Post-transfection, genomic DNA (gDNA) was extracted. The efficiency of gene editing was then quantified using quantitative polymerase chain reaction (qPCR). The assay was run for 40 cycles on a Bio-Rad CFX96 Real-Time System. The data showed minimal off-target effects, a direct result of our optimized guide RNA design protocol.
+                    </p>
+                    <p>
+                        <strong class="font-bold text-gray-900">Step 3: Cell Sorting.</strong> For subsequent single-cell analysis, a subpopulation was isolated. The cells were then immediately prepared for Fluorescence-Activated Cell Sorting (FACS) using a BD FACSAria Fusion sorter. This required careful calibration of the instrument's fluidics pressure and nozzle alignment—a process often poorly described in text-only SOPs. The isolated cells were frozen in liquid nitrogen for long-term storage.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- References Placeholder -->
+            <div class="border-t border-gray-200 mt-12 pt-8 pb-12">
+                 <h3 class="text-lg font-bold text-gray-900 mb-4">References</h3>
+                 <div class="text-sm text-gray-500 space-y-2">
+                     <p>1. Jinek, M. et al. A programmable dual-RNA-guided DNA endonuclease in adaptive bacterial immunity. <em>Science</em> 337, 816–821 (2012).</p>
+                     <p>2. Shalem, O. et al. Genome-scale CRISPR-Cas9 knockout screening in human cells. <em>Science</em> 343, 84–87 (2014).</p>
+                 </div>
             </div>
         </main>
     </div>
