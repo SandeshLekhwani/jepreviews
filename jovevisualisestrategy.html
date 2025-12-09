@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jove Visualise: The Unified Workbench Strategy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Updates in v3:
+         1. Deep Dive SEO Matrix: Added specific schema types, meta tag patterns, and SSR requirements.
+         2. Authority Bridge Details: Specifics on internal linking strategies.
+         3. Core Web Vitals: Added performance requirements for the graph component.
+    -->
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            dark: '#0f172a',
+                            blue: '#2563eb',
+                            teal: '#0d9488',
+                            purple: '#7c3aed',
+                            orange: '#f97316',
+                            green: '#16a34a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-900">
+
+    <!-- Executive Header -->
+    <header class="bg-brand-dark text-white py-12 border-b-8 border-brand-teal">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+                <div>
+                    <h1 class="text-4xl font-black tracking-tight mb-2">Jove Visualise: The Workbench Strategy</h1>
+                    <p class="text-xl text-slate-300">Detailed Roadmap: SEO Expansion & Product Evolution</p>
+                </div>
+                <div class="mt-4 md:mt-0 flex gap-2">
+                    <span class="bg-brand-blue/20 border border-brand-blue text-brand-blue font-bold px-3 py-1 rounded text-xs uppercase">Programmatic SEO</span>
+                    <span class="bg-brand-teal/20 border border-brand-teal text-brand-teal font-bold px-3 py-1 rounded text-xs uppercase">Product Upsell</span>
+                    <span class="bg-brand-purple/20 border border-brand-purple text-brand-purple font-bold px-3 py-1 rounded text-xs uppercase">Higher Ed</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-12 space-y-16">
+
+        <!-- SECTION 1: THE TRAFFIC ENGINE (DETAILED SEO) -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-brand-blue p-6 text-white flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold">1. Acquisition: The SEO Implementation Matrix</h2>
+                    <p class="text-blue-100 text-sm mt-1">Comprehensive checklist to transform "Search Results" into "Rankable Assets".</p>
+                </div>
+                <div class="text-3xl">🔍</div>
+            </div>
+            
+            <div class="p-8">
+                <!-- 1.1 URL Structure -->
+                <div class="mb-10">
+                    <h3 class="flex items-center gap-2 font-bold text-slate-900 text-lg mb-4">
+                        <span class="bg-brand-blue text-white w-6 h-6 rounded flex items-center justify-center text-xs">A</span> 
+                        URL & Rendering Architecture
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-red-50 border border-red-100 p-4 rounded-lg">
+                            <strong class="text-red-700 text-sm uppercase block mb-2">Current Issues (To Fix)</strong>
+                            <ul class="text-sm space-y-2 text-slate-700">
+                                <li>❌ <strong>Numeric URLs:</strong> <code>/topic/84920</code> (No keyword signal).</li>
+                                <li>❌ <strong>Client-Side Rendering (CSR):</strong> Google sees a blank page/loader initially.</li>
+                                <li>❌ <strong>Orphaned Pages:</strong> No internal links pointing to these topic pages.</li>
+                            </ul>
+                        </div>
+                        <div class="bg-green-50 border border-green-100 p-4 rounded-lg">
+                            <strong class="text-green-700 text-sm uppercase block mb-2">Target State (The Fix)</strong>
+                            <ul class="text-sm space-y-2 text-slate-700">
+                                <li>✅ <strong>Semantic Slugs:</strong> <code>/explore/western-blot</code> (Strong keyword signal).</li>
+                                <li>✅ <strong>Server-Side Rendering (SSR):</strong> HTML is fully populated with Gen AI text <em>before</em> it hits the browser.</li>
+                                <li>✅ <strong>XML Sitemap:</strong> Auto-generate a sitemap listing all 10,000 Topic Hubs.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1.2 On-Page Content -->
+                <div class="mb-10">
+                    <h3 class="flex items-center gap-2 font-bold text-slate-900 text-lg mb-4">
+                        <span class="bg-brand-blue text-white w-6 h-6 rounded flex items-center justify-center text-xs">B</span> 
+                        Gen AI Content Injection
+                    </h3>
+                    <p class="text-sm text-slate-600 mb-4">A list of videos is "Thin Content." We must programmatically inject text to rank.</p>
+                    <div class="overflow-x-auto border rounded-lg">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-slate-50 text-slate-700 uppercase font-bold text-xs">
+                                <tr>
+                                    <th class="px-4 py-3">Element</th>
+                                    <th class="px-4 py-3">Gen AI Task (Gemini API)</th>
+                                    <th class="px-4 py-3">SEO Goal</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <td class="px-4 py-3 font-medium">H1 Header</td>
+                                    <td class="px-4 py-3">"Visual Guide to [Topic]: Protocols & Experiments"</td>
+                                    <td class="px-4 py-3">Target high-volume "Guide" keywords.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 font-medium">Definition</td>
+                                    <td class="px-4 py-3">150-word academic definition of the topic.</td>
+                                    <td class="px-4 py-3">Win Google's "Featured Snippet" or Knowledge Panel.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 font-medium">Synthesis</td>
+                                    <td class="px-4 py-3">"How these videos connect" (e.g., Video A shows Prep, Video B shows Analysis).</td>
+                                    <td class="px-4 py-3">Provide unique value vs. competitors like Wikipedia.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 font-medium">FAQs</td>
+                                    <td class="px-4 py-3">5 Common Questions & Answers about the method.</td>
+                                    <td class="px-4 py-3">Target "People Also Ask" (PAA) box.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 1.3 Technical Schema -->
+                <div class="mb-10">
+                    <h3 class="flex items-center gap-2 font-bold text-slate-900 text-lg mb-4">
+                        <span class="bg-brand-blue text-white w-6 h-6 rounded flex items-center justify-center text-xs">C</span> 
+                        Structured Data (Schema) Strategy
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-slate-50 p-4 rounded border border-slate-200">
+                            <strong class="block text-slate-900 mb-1"><code>FAQPage</code></strong>
+                            <p class="text-xs text-slate-600">Wraps the AI-generated Q&A. Essential for occupying vertical space in SERPs.</p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded border border-slate-200">
+                            <strong class="block text-slate-900 mb-1"><code>CollectionPage</code></strong>
+                            <p class="text-xs text-slate-600">Tells Google "This is a curated set of items about [Topic]."</p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded border border-slate-200">
+                            <strong class="block text-slate-900 mb-1"><code>BreadcrumbList</code></strong>
+                            <p class="text-xs text-slate-600">Structure: Home > Explore > Biology > [Topic]. Helps Google understand site hierarchy.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1.4 The Authority Bridge -->
+                <div>
+                    <h3 class="flex items-center gap-2 font-bold text-slate-900 text-lg mb-4">
+                        <span class="bg-brand-blue text-white w-6 h-6 rounded flex items-center justify-center text-xs">D</span> 
+                        The Authority Bridge (Internal Linking)
+                    </h3>
+                    <p class="text-sm text-slate-600 mb-4">The subdomain <code>visualize.jove.com</code> has low authority. We must borrow it from <code>jove.com</code>.</p>
+                    <div class="bg-slate-900 text-white p-4 rounded-lg font-mono text-xs">
+                        <div class="mb-2 text-green-400">// UPDATE: Jove.com Video Page Template</div>
+                        <div class="pl-4">
+                            &lt;div class="related-topics"&gt;<br>
+                            &nbsp;&nbsp;&lt;h3&gt;Explore Related Visual Guides:&lt;/h3&gt;<br>
+                            &nbsp;&nbsp;&lt;a href="<span class="text-yellow-300">https://visualize.jove.com/explore/western-blot</span>"&gt;Visual Guide to Western Blot&lt;/a&gt;<br>
+                            &lt;/div&gt;
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: THE PRODUCT ENGINE (UPSELL) -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-brand-teal p-6 text-white flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold">2. Upsell: The "Visual Workbench"</h2>
+                    <p class="text-teal-100 text-sm mt-1">Selling "Workflow Efficiency" to Institutions.</p>
+                </div>
+                <div class="text-3xl">🛠️</div>
+            </div>
+
+            <div class="p-8">
+                <p class="text-slate-600 mb-8 max-w-3xl">
+                    We are moving from "Watching" to "Building." The upsell value lies in the <strong>Workbench</strong>—a tool where researchers can extract specific techniques from different videos to build a custom protocol.
+                </p>
+
+                <!-- Interactive Workbench Mockup -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    
+                    <!-- Feature: AI Snippet ID -->
+                    <div class="lg:col-span-4 bg-slate-50 p-5 rounded-xl border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <div class="text-xs font-bold text-slate-400 uppercase mb-2">Step 1: AI Analysis</div>
+                            <h4 class="font-bold text-slate-800 text-lg mb-2">Smart Snippet ID</h4>
+                            <p class="text-sm text-slate-600">The AI scans the video transcript and auto-suggests clip boundaries.</p>
+                        </div>
+                        <div class="mt-4 bg-white p-3 rounded shadow-sm border border-slate-200">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-brand-purple text-lg">✨</span>
+                                <span class="text-xs font-bold text-slate-700">AI Suggestion Found</span>
+                            </div>
+                            <div class="text-xs text-slate-500">"Reagent Preparation" detected at <strong>02:14 - 03:30</strong></div>
+                        </div>
+                    </div>
+
+                    <!-- Feature: The Workbench (Snippet Fix) -->
+                    <div class="lg:col-span-8 bg-slate-900 p-6 rounded-xl border border-slate-800 text-white relative">
+                        <div class="absolute top-3 left-4 text-xs font-bold text-brand-teal uppercase">Step 2: The Workbench (User Fix)</div>
+                        
+                        <!-- Video Timeline Editor -->
+                        <div class="mt-8 mb-6">
+                            <div class="flex justify-between text-xs text-slate-400 mb-2">
+                                <span>02:00</span>
+                                <span class="text-white font-bold">Snippet: Reagent Prep</span>
+                                <span>04:00</span>
+                            </div>
+                            <div class="h-12 bg-slate-800 rounded relative overflow-hidden border border-slate-600">
+                                <!-- Waveform -->
+                                <div class="absolute inset-0 flex items-center justify-center opacity-20">||||||||||||||||||||||||||||||</div>
+                                <!-- Selection Box -->
+                                <div class="absolute top-0 bottom-0 left-[20%] right-[30%] bg-brand-teal/30 border-x-2 border-brand-teal cursor-col-resize flex items-center justify-center">
+                                    <span class="bg-brand-teal text-white text-[10px] px-1 rounded">Active Clip</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-center gap-4 mt-4">
+                                <button class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-xs">Play Selection</button>
+                                <button class="bg-brand-teal hover:bg-teal-600 px-3 py-1 rounded text-xs font-bold">Confirm & Add to Workflow</button>
+                            </div>
+                        </div>
+
+                        <!-- The Value Prop -->
+                        <div class="bg-slate-800/50 p-3 rounded text-center text-xs text-slate-400">
+                            <em>Value: The researcher creates a perfect, distraction-free guide for the lab bench.</em>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: MARKET EXPANSION (HIGHER ED) -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-brand-purple p-6 text-white flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold">3. Expansion: Jove Higher Ed Strategy</h2>
+                    <p class="text-purple-100 text-sm mt-1">Applying the Workbench to the Classroom.</p>
+                </div>
+                <div class="text-3xl">🎓</div>
+            </div>
+
+            <div class="p-8">
+                <p class="text-slate-600 mb-8 max-w-3xl">
+                    The "Workflow Builder" technology isn't just for researchers. For Higher Ed, we re-skin this feature as the <strong>"Visual Syllabus Builder,"</strong> allowing Professors to create custom video textbooks.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Strategy A: Research -->
+                    <div class="border-l-4 border-brand-teal pl-6 py-2">
+                        <h3 class="text-lg font-bold text-slate-900">Research Market</h3>
+                        <p class="text-xs font-bold text-brand-teal uppercase mb-2">Target: PIs & Postdocs</p>
+                        <p class="text-sm text-slate-600">
+                            <strong>Use Case:</strong> Planning a novel experiment.
+                            <br><strong>Output:</strong> A "Protocol" (Step-by-step technical guide).
+                            <br><strong>Pain Point:</strong> Reproducibility & Technical Failure.
+                        </p>
+                    </div>
+
+                    <!-- Strategy B: Higher Ed -->
+                    <div class="border-l-4 border-brand-purple pl-6 py-2">
+                        <h3 class="text-lg font-bold text-slate-900">Education Market</h3>
+                        <p class="text-xs font-bold text-brand-purple uppercase mb-2">Target: Professors & Deans</p>
+                        <p class="text-sm text-slate-600">
+                            <strong>Use Case:</strong> Creating a course curriculum (Bio 101).
+                            <br><strong>Output:</strong> A "Playlist" (Chapter 1: Mitosis, Chapter 2: Meiosis).
+                            <br><strong>Pain Point:</strong> Student Engagement & Textbook Costs.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-8 bg-purple-50 p-4 rounded-lg border border-purple-100 text-sm text-purple-900 flex items-center gap-4">
+                    <span class="text-2xl">💡</span>
+                    <div>
+                        <strong>The Higher Ed Upsell:</strong> "Professor, don't just assign a video. Use Visualise to create a <strong>Custom Video Lab Manual</strong> that integrates directly into Canvas/Blackboard."
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: COMPETITORS & RISK -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="bg-slate-50 p-8 rounded-2xl border border-slate-200">
+                <h3 class="text-xl font-bold mb-4 text-slate-900">Competitive Differentiation</h3>
+                <ul class="space-y-4">
+                    <li class="flex gap-3">
+                        <div class="min-w-[4px] bg-red-500 h-full"></div>
+                        <div>
+                            <strong class="text-sm block text-slate-800">vs. BioRender</strong>
+                            <p class="text-xs text-slate-600">They create static cartoons. We create <strong>Video Evidence</strong>. A cartoon can't show you the texture of a solution.</p>
+                        </div>
+                    </li>
+                    <li class="flex gap-3">
+                        <div class="min-w-[4px] bg-blue-500 h-full"></div>
+                        <div>
+                            <strong class="text-sm block text-slate-800">vs. LabXchange</strong>
+                            <p class="text-xs text-slate-600">They rely on disparate, open-source clips. Jove offers a <strong>Standardized, Peer-Reviewed</strong> library. Higher trust for universities.</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                <h3 class="text-xl font-bold mb-4 text-slate-900">Risks & Mitigation</h3>
+                <div class="space-y-4">
+                    <div class="p-3 bg-red-50 rounded border border-red-100">
+                        <div class="text-xs font-bold text-red-600 uppercase">Risk: Technical Complexity</div>
+                        <p class="text-xs text-slate-600 mt-1">Building a video editor (The Snipper) in the browser is hard.</p>
+                        <p class="text-xs text-slate-800 mt-1 font-bold">Mitigation: Start with "Start/End Time" metadata markers only. Don't re-render video files; just play specific ranges.</p>
+                    </div>
+                    <div class="p-3 bg-red-50 rounded border border-red-100">
+                        <div class="text-xs font-bold text-red-600 uppercase">Risk: SEO Cannibalization</div>
+                        <p class="text-xs text-slate-600 mt-1">Visualise pages might outrank main video pages.</p>
+                        <p class="text-xs text-slate-800 mt-1 font-bold">Mitigation: Use <code>rel="canonical"</code> tags intelligently. Ensure Visualise targets "Guide" keywords, Main Site targets "Video" keywords.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-12 text-center text-slate-400 text-sm">
+        <p>&copy; 2025 Jove Strategic Planning. Internal Confidential.</p>
+        <p class="mt-2">Unified Strategy: SEO + Product + Sales</p>
+    </footer>
+
+</body>
+</html>
